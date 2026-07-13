@@ -3,12 +3,12 @@ Portfolio Discord Bot for ADD application.
 
 Nothing yet.
 
-##Tech Stack
+## Tech Stack
 * **Language:** Python 3.14
 * **Libraries:** `discord.py`, `Flask`
 * **Database:** SQLite
 
-###Commits:
+### Commits:
 **Format:** {type}: {short desc.}
 * *feat*: new feature
 * *fix*: fix of something
