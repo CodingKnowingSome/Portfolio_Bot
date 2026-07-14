@@ -3,3 +3,6 @@ __pycache__/
 *.log
 venv/
 .idea/
+bot.log
+data
+data/
