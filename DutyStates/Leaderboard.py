@@ -41,7 +41,6 @@ async def Leaderboard(client):
         embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
         lb = await channel.send(embed=embed)
 
-        # Save the new ID to the database so we have it next startup
         conn = sqlite3.connect("data/leaderboard.db")
         c = conn.cursor()
         c.execute("""

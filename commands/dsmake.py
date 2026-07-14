@@ -4,6 +4,7 @@ from discord import app_commands
 import logging
 import sqlite3
 from discord.ui import Modal, TextInput
+from access_check import has_required_role
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,9 @@ class DSMake(commands.Cog):
     @app_commands.describe(start_tablist="Link to Tablist Started")
     @app_commands.describe(end_tablist="Link to Tablist Ended")
     async def dsmake(self, interaction: discord.Interaction, start_time: str, end_time: str, duty: str, duty_link:str, start_tablist:str, end_tablist:str):
+        GUEST_ROLE_ID = 1526372106517086370
+        if not await has_required_role(interaction, GUEST_ROLE_ID):
+            return
         conn = sqlite3.connect("data/ds_metadata.db")
         c =conn.cursor()
         c.execute('''SELECT * FROM ds_metadata WHERE user_id = ?''', (interaction.user.id,))

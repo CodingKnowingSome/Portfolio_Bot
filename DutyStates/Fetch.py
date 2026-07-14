@@ -1,4 +1,4 @@
-import asyncio
+from datetime import datetime
 import sqlite3
 import discord
 from discord.ui import Button, View
@@ -28,9 +28,17 @@ async def Fetch(client, user, fetch):
             channel = await client.fetch_channel(channel_id)
         message = await channel.fetch_message(message_id)
         lines = message.content.splitlines()
+        start_str = lines[4].split("Time Started:")[1].strip().split()[0]
+        end_str = lines[7].split("Time Ended:")[1].strip().split()[0]
+        start_time = datetime.strptime(start_str, "%H:%M")
+        end_time = datetime.strptime(end_str, "%H:%M")
+        duration_minutes = (end_time - start_time).total_seconds() / 60
+        total_mins = int(duration_minutes)
+        hours = total_mins // 60
+        minutes = total_mins % 60
         embed = discord.Embed(
             title="Duty State",
-            description=f"{user.mention} \n {lines[0]} | {lines[1]} \n {lines[4]} to {lines[7]}",
+            description=f"{user.mention} \n {lines[0]} | {lines[1]} \n {lines[4]} to {lines[7]} \n Time: {hours}h {minutes}m",
             colour=discord.Colour.blue(),
         )
         embed.add_field(name="Duty", value=lines[2], inline=True)
@@ -63,7 +71,6 @@ async def Fetch(client, user, fetch):
         await fetch_msg.edit(view=view)
         c.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
         conn.commit()
-        await SendFetch(client, fetch)
         conn = sqlite3.connect("data/leaderboard.db")
         c = conn.cursor()
         c.execute("SELECT graded FROM leaderboard WHERE user_id = ?", (user.id,))

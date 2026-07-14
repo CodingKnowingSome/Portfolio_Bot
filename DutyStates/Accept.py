@@ -25,6 +25,7 @@ async def Accept(client, message, img1, img2, img3, user, fetch_msg):
     embed.set_footer(text=f"Accepted!")
     embed.color = discord.Color.green()
     await fetch_msg.edit(embed=embed, view=None)
+    await fetch_msg.delete()
     try:
         await img1.delete()
         await img2.delete()

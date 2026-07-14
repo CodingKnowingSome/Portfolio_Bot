@@ -7,8 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-conn = sqlite3.connect("data/duty_states.db")
-c = conn.cursor()
+
 async def DutyListener(message):
         try:
             lines = message.content.splitlines()
@@ -245,6 +244,26 @@ async def DutyListener(message):
                 await message.add_reaction("❌")
                 return
             if True:
+                start_str = lines[4].split("Time Started:")[1].strip().split()[0]
+                end_str = lines[7].split("Time Ended:")[1].strip().split()[0]
+
+                start_time = datetime.strptime(start_str, "%H:%M")
+                end_time = datetime.strptime(end_str, "%H:%M")
+
+                duration_minutes = (end_time - start_time).total_seconds() / 60
+                if duration_minutes < 0:
+                    duration_minutes += 1440
+
+                if duration_minutes < 30:
+                    embed = discord.Embed(
+                        title="Failed Submission",
+                        description="Your duty state must be at least 30 minutes long.",
+                        color=discord.Color.red()
+                    )
+                    await message.reply(embed=embed, mention_author=True)
+                    await message.add_reaction("❌")
+                    return
+
                 embed = discord.Embed(
                     title = "Successful Submission",
                     description="You will receive a notification once an officer graded your duty state!",
@@ -254,8 +273,10 @@ async def DutyListener(message):
                 embed.set_footer(text=f"Me | {currenttime}")
                 message_id = message.id
                 user_id = message.author.id
-                c.execute("INSERT INTO pending_duties (message_id, user_id) VALUES (?, ?)", (message_id, user_id))
-                conn.commit()
+                with sqlite3.connect("data/duty_states.db") as conn:
+                    c = conn.cursor()
+                    c.execute("INSERT INTO pending_duties (message_id, user_id) VALUES (?, ?)", (message_id, user_id))
+                    conn.commit()
                 await message.reply(embed = embed, mention_author=True)
                 await message.add_reaction("⚙️")
                 return

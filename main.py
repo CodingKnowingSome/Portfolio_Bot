@@ -8,6 +8,7 @@ import asyncio
 from DutyStates.Leaderboard import Leaderboard
 from distributor import Distribute
 from logs import setup_logging
+from discord_logging import DiscordLogHandler
 
 #dotenv setup
 load_dotenv()
@@ -71,6 +72,15 @@ async def on_ready():
     print('We have logged in as {0.user}'.format(client))
     logger.info('We have logged in as {0.user}'.format(client))
     logger.info('Bot is up and running.')
+    LOG_CHANNEL_ID = 1526383995460255845
+    PING_ROLE_ID = 1526373134603911300
+    discord_handler = DiscordLogHandler(client, LOG_CHANNEL_ID, PING_ROLE_ID)
+    discord_handler.setLevel(logging.WARNING)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    discord_handler.setFormatter(formatter)
+    logging.getLogger().addHandler(discord_handler)
+    logger.info('Discord logging setup complete.')
+    logger.warning('Discord logging TEST warning. Ignore.')
 
 #$hello for testing
 @client.event

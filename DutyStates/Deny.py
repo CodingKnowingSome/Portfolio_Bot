@@ -26,6 +26,7 @@ async def Deny(client, message, img1, img2, img3, user, fetch_msg, reason):
     embed.color = discord.Color.red()
     embed.set_footer(text=f"Denied! | {reason}")
     await fetch_msg.edit(embed=embed, view=None)
+    await fetch_msg.delete()
     try:
         await img1.delete()
         await img2.delete()

@@ -3,6 +3,7 @@ from discord import app_commands
 import discord
 import sqlite3
 import logging
+from access_check import has_required_role
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,9 @@ class Pending(commands.Cog):
 
     @app_commands.command(name="pending", description="Check for your pending duty states!")
     async def pending(self, interaction: discord.Interaction):
+        GUEST_ROLE_ID = 1526372106517086370
+        if not await has_required_role(interaction, GUEST_ROLE_ID):
+            return
         conn = sqlite3.connect("data/duty_states.db")
         c = conn.cursor()
         c.execute("SELECT * FROM pending_duties WHERE user_id = ?", (interaction.user.id,))
