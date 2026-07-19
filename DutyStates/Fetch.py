@@ -60,8 +60,8 @@ async def Fetch(client, user, fetch):
         )
         fetch_msg = await gchannel.send(embed=embed)
         img1 = await gchannel.send(f"{lines[2]}")
-        img2 = await gchannel.send(f"{lines[5][len("Tablist Started: "):].strip()}")
-        img3 = await gchannel.send(f"{lines[8][len("Tablist Ended: "):].strip()}")
+        img2 = await gchannel.send(f"{lines[5][len('Tablist Started: '):].strip()}")
+        img3 = await gchannel.send(f"{lines[8][len('Tablist Ended: '):].strip()}")
         async def accept_callback(interaction):
             await Accept(client, message, img1, img2, img3, interaction.user, fetch_msg, total_mins)
         accept.callback=accept_callback
