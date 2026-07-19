@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 import sqlite3
 import discord
@@ -19,7 +20,9 @@ async def Fetch(client, user, fetch):
         c.execute("SELECT message_id FROM pending_duties ORDER BY message_id ASC LIMIT 1")
         result = c.fetchone()
         if not result:
-            await gchannel.send("No duty state to fetch.")
+            nofetch = await gchannel.send("No duty state to fetch.", delete_after=60)
+            await asyncio.sleep(60)
+            await nofetch.delete()
             return
         message_id = result[0]
         channel_id = 1526379960179232818
@@ -60,7 +63,7 @@ async def Fetch(client, user, fetch):
         img2 = await gchannel.send(f"{lines[5][len("Tablist Started: "):].strip()}")
         img3 = await gchannel.send(f"{lines[8][len("Tablist Ended: "):].strip()}")
         async def accept_callback(interaction):
-            await Accept(client, message, img1, img2, img3, interaction.user, fetch_msg)
+            await Accept(client, message, img1, img2, img3, interaction.user, fetch_msg, total_mins)
         accept.callback=accept_callback
         view.add_item(accept)
         async def deny_callback(interaction):

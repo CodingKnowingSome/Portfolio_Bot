@@ -1,4 +1,5 @@
 import discord
+from aiohttp import payload
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
@@ -9,6 +10,7 @@ from DutyStates.Leaderboard import Leaderboard
 from distributor import Distribute
 from logs import setup_logging
 from discord_logging import DiscordLogHandler
+from Functions.AA_Promotions_Shouts import AA_Promotions_Shouts
 
 #dotenv setup
 load_dotenv()
@@ -35,6 +37,15 @@ class Bot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=None, intents=intents)
     async def setup_hook(self):
+        LOG_CHANNEL_ID = 1526383995460255845
+        PING_ROLE_ID = 1526373134603911300
+        discord_handler = DiscordLogHandler(client, LOG_CHANNEL_ID, PING_ROLE_ID)
+        discord_handler.setLevel(logging.WARNING)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        discord_handler.setFormatter(formatter)
+        logging.getLogger().addHandler(discord_handler)
+        logger.info('Discord logging setup complete.')
+        logger.warning('Discord logging TEST warning. Ignore.')
         logger.info('Loading databases')
         await database_setup.database_setup()
         logger.info('Databases loaded')
@@ -72,15 +83,6 @@ async def on_ready():
     print('We have logged in as {0.user}'.format(client))
     logger.info('We have logged in as {0.user}'.format(client))
     logger.info('Bot is up and running.')
-    LOG_CHANNEL_ID = 1526383995460255845
-    PING_ROLE_ID = 1526373134603911300
-    discord_handler = DiscordLogHandler(client, LOG_CHANNEL_ID, PING_ROLE_ID)
-    discord_handler.setLevel(logging.WARNING)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    discord_handler.setFormatter(formatter)
-    logging.getLogger().addHandler(discord_handler)
-    logger.info('Discord logging setup complete.')
-    logger.warning('Discord logging TEST warning. Ignore.')
 
 #$hello for testing
 @client.event
@@ -91,6 +93,27 @@ async def on_message(message):
         await message.channel.send('Hello!')
     else:
         await distributor.handle(message)
+
+@client.event
+async def on_raw_reaction_add(payload):
+
+    AA_LOGS_CHANNEL_ID = 1526383866548453478
+    if payload.channel_id != AA_LOGS_CHANNEL_ID:
+        return
+
+    if payload.emoji.name != "aa_approve":
+        return
+
+    channel = client.get_channel(payload.channel_id)
+    guild = client.get_guild(payload.guild_id)
+
+    try:
+        message = await channel.fetch_message(payload.message_id)
+    except discord.NotFound:
+        return
+
+    await AA_Promotions_Shouts(message, client, guild)
+
 
 
 
