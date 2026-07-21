@@ -13,6 +13,7 @@ A custom Discord bot created with Python and discord.py. Recreates some function
 - **Commands:** Dice, ping, pending (*Commands/*).
 
 ## Repository Structure
+```
 Portfolio_Bot/
 ├── commands/               # Slash commands
 │   ├── dice.py             # Random dice roller
@@ -40,6 +41,7 @@ Portfolio_Bot/
 ├── distributor.py          # Message distributor
 ├── logs.py                 # File and console logger
 └── main.py                 # Bot initialization
+```
 
 ## Databases
 The bot uses 3 SQLite3 databases to store every information it needs.
