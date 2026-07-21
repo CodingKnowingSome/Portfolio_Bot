@@ -56,7 +56,7 @@ try:
 
     #channels
     LOG_CHANNEL_ID = get_env_int('LOG_CHANNEL_ID')
-    AA_LOGS_CHANNEL_ID = get_env_int('AA_LOOG_CHANNEL_ID')
+    AA_LOGS_CHANNEL_ID = get_env_int('AA_LOGS_CHANNEL_ID')
     ARCHIVE_CHANNEL_ID = get_env_int('ARCHIVE_CHANNEL_ID')
     DSGRADE_CHANNEL_ID = get_env_int('DSGRADE_CHANNEL_ID')
     DS_CHANNEL_ID = get_env_int('DS_CHANNEL_ID')

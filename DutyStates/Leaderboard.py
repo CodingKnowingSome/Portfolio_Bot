@@ -62,11 +62,12 @@ async def leaderboard(client: discord.Client):
     while True:
         await asyncio.sleep(60)
         try:
-            lb = await channel.fetch_message(lb.id)
             await keepup(client, lb)
         except discord.NotFound:
             logger.error("leaderboard message was deleted during runtime! Breaking loop...")
             break
+        except discord.HTTPException as e:
+            logger.warning(f"Network issue while updating leaderboard (HTTP {e.status}): Retrying next cycle.")
         except Exception as e:
             logger.error(f"Error in leaderboard loop: {e}")
 
@@ -94,10 +95,12 @@ async def keepup(client: discord.Client, lb: discord.Message):
                 user = await client.fetch_user(user_id)
             except Exception:
                 user = None
-            if user:
-                description += f"**{idx}.** - {user.mention} - {graded}\n"
-            else:
-                description += f"**{idx}.** - *Deleted/Unknown User ({user_id})* - {graded}\n"
+        if user:
+            description += f"**{idx}.** - {user.mention} - {graded}\n"
+        else:
+            description += f"**{idx}.** - *Deleted/Unknown User ({user_id})* - {graded}\n"
     embed.description = description
+    if not description:
+        embed.description = "NA"
     embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
     await lb.edit(embed=embed)

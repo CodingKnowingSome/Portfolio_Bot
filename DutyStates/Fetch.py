@@ -71,6 +71,8 @@ async def fetch(client: discord.Client, user: discord.User):
         end_time = datetime.strptime(end_str, "%H:%M")
         duration_minutes = (end_time - start_time).total_seconds() / 60
         total_mins = int(duration_minutes)
+        if total_mins <= 0:
+            total_mins += 1440
         hours = total_mins // 60
         minutes = total_mins % 60
         embed = discord.Embed(
@@ -118,20 +120,21 @@ async def fetch(client: discord.Client, user: discord.User):
         deny.callback = deny_callback
         view.add_item(deny)
         await fetch_msg.edit(view=view)
-        c.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
-        conn.commit()
-        conn = sqlite3.connect("data/leaderboard.db")
-        c = conn.cursor()
-        c.execute("SELECT graded FROM leaderboard WHERE user_id = ?", (user.id,))
-        result = c.fetchone()
-        if result:
-            graded = result[0]
-            graded += 1
-            c.execute("UPDATE leaderboard SET graded = ? WHERE user_id = ?", (graded, user.id))
-        else:
-            c.execute("INSERT INTO leaderboard (user_id, graded) VALUES (?, ?)", (user.id, 1))
-        conn.commit()
-        conn.close()
+        with sqlite3.connect("data/duty_states.db") as conn:
+            c = conn.cursor()
+            c.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
+            conn.commit()
+        with sqlite3.connect("data/leaderboard.db") as conn:
+            c = conn.cursor()
+            c.execute("SELECT graded FROM leaderboard WHERE user_id = ?", (user.id,))
+            result = c.fetchone()
+            if result:
+                graded = result[0]
+                graded += 1
+                c.execute("UPDATE leaderboard SET graded = ? WHERE user_id = ?", (graded, user.id))
+            else:
+                c.execute("INSERT INTO leaderboard (user_id, graded) VALUES (?, ?)", (user.id, 1))
+            conn.commit()
 
     except Exception as e:
         await gchannel.send("Something went wrong.")

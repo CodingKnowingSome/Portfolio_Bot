@@ -42,7 +42,6 @@ class Bot(commands.Bot):
         discord_handler.setFormatter(formatter)
         logging.getLogger().addHandler(discord_handler)
         logger.info('Discord logging setup complete.')
-        logger.warning('Discord logging TEST warning. Ignore.')
         logger.info('Loading databases')
         await database_setup.database_setup()
         logger.info('Databases loaded')
@@ -86,6 +85,7 @@ async def on_ready():
     print('We have logged in as {0.user}'.format(client))
     logger.info('We have logged in as {0.user}'.format(client))
     logger.info('Bot is up and running.')
+    logger.warning('Discord logging TEST warning. Ignore.')
 
 
 #$hello for testing
