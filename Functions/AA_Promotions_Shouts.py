@@ -1,12 +1,23 @@
+"""
+Sends a shout notifying the promoted students once the attendance log is approved.
+"""
 import discord
 import logging
+import config
 
 logger = logging.getLogger('__name__')
 
-async def AA_Promotions_Shouts(message, client, guild):
 
-    PROMOTION_SHOUTS_CHANNEL_ID = 1526379578254430439
-    promotion_channel = client.get_channel(PROMOTION_SHOUTS_CHANNEL_ID)
+async def aa_promotions_shouts(message: discord.Message, client: discord.Client, guild: discord.Guild):
+    """
+    Sends a shouts notifying the promoted students.
+    :param message: The attendance log message.
+    :param client: The bot.
+    :param guild: The server.
+    :return:
+    """
+    promotion_shouts_channel_id = config.PROMOTION_SHOUTS_CHANNEL_ID
+    promotion_channel = client.get_channel(promotion_shouts_channel_id)
 
     lines = message.content.splitlines()
     stage_line = lines[3]
@@ -33,9 +44,9 @@ async def AA_Promotions_Shouts(message, client, guild):
         pings = ", ".join(found_user)
 
         embed1 = discord.Embed(
-            title = "**You have been promoted to Cadet!**",
-            description = f"**{passed}, congratulations you have been promoted to Cadet! Head to https://discord.com/channels/804051193172197396/987692902278918234 and https://discord.com/channels/412291659347263498/987778002899312660 to receive your new roles.**",
-            color = discord.Color.green()
+            title="**You have been promoted to Cadet!**",
+            description=f"**{passed}, congratulations you have been promoted to Cadet! Head to https://discord.com/channels/804051193172197396/987692902278918234 and https://discord.com/channels/412291659347263498/987778002899312660 to receive your new roles.**",
+            color=discord.Color.green()
         )
 
         embed2 = discord.Embed(

@@ -1,15 +1,29 @@
+"""
+The function that handles the duty state denials.
+"""
 import discord
 from datetime import datetime
-import sqlite3
+import config
 import logging
 
 logger = logging.getLogger(__name__)
 
-async def Deny(client, message, img1, img2, img3, user, fetch_msg, reason):
-    ds_channel_id = 1526379960179232818
-    ds_channel = client.get_channel(ds_channel_id)
-    gchannel_id = 1526383804464365628
-    gchannel = client.get_channel(gchannel_id)
+
+async def deny(client: discord.Client, message: discord.Message, img1: discord.Message, img2: discord.Message,
+               img3: discord.Message, user: discord.User, fetch_msg: discord.Message, reason: str):
+    """
+    Handles the duty state denial notification, and grade channel messages deletion.
+    :param client: The bot.
+    :param message: The duty state message.
+    :param img1: The duty proof image in the grading channel.
+    :param img2: The tablist started image in the grading channel.
+    :param img3: The tablist ended image in the grading channel.
+    :param user: The user who graded the duty state.
+    :param fetch_msg: The message containing the duty state information in the grading channel.
+    :param reason:
+    """
+    dsgrade_channel_id = config.DSGRADE_CHANNEL_ID
+    gchannel = client.get_channel(dsgrade_channel_id)
     embed = discord.Embed(
         title="Denied",
         description=f"{message.author.mention} your duty state has been denied by {user.mention}",

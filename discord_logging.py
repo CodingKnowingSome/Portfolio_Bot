@@ -1,9 +1,17 @@
+"""
+Handles logging in the discord channel.
+"""
 import logging
 import discord
 import asyncio
 
+
 class DiscordLogHandler(logging.Handler):
-    def __init__(self, bot, channel_id, ping_role_id):
+    """
+    A handler for logging in the designated discord channel.
+    """
+
+    def __init__(self, bot: discord.Client, channel_id: int, ping_role_id: int):
         super().__init__()
         self.bot = bot
         self.channel_id = channel_id
@@ -11,13 +19,18 @@ class DiscordLogHandler(logging.Handler):
         self._is_sending = False
 
     def emit(self, record):
+        """
+        Emits useless logs, creates the embed.
+        :param record: The record of logging.
+        :return:
+        """
         if not self.bot.is_ready() or self.bot.is_closed():
             return
         if self._is_sending:
             return
         log_entry = self.format(record)
         if len(log_entry) > 1800:
-            log_entry = log_entry[:1750] +"\n... [Cut due to Discord character limit.]"
+            log_entry = log_entry[:1750] + "\n... [Cut due to Discord character limit.]"
         if record.levelno == logging.ERROR:
             color = discord.Color.red()
             title = "Error log"
@@ -30,14 +43,19 @@ class DiscordLogHandler(logging.Handler):
         else:
             return
         embed = discord.Embed(
-            title = title,
-            color = color,
+            title=title,
+            color=color,
             description=f"```python\n{log_entry}\n```"
         )
-        embed.add_field(name='Logger', value=record.name, inline=True)
-        embed.add_field(name='Level', value=record.levelname, inline=True)
+        embed.add_field(name='Logger', value=record.name)
+        embed.add_field(name='Level', value=record.levelname)
         asyncio.run_coroutine_threadsafe(self.send_log(embed), self.bot.loop)
-    async def send_log(self, embed):
+
+    async def send_log(self, embed: discord.Embed):
+        """
+        Sends the log.
+        :param embed: The embed to send.
+        """
         self._is_sending = True
         try:
             channel = self.bot.get_channel(self.channel_id)

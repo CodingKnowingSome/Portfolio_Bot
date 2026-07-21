@@ -6,3 +6,5 @@ venv/
 bot.log
 data
 data/
+codebase_bundler.py
+project_codebase_bundle.md

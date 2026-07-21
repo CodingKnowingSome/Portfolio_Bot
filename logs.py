@@ -1,7 +1,15 @@
+"""
+Setup for the logging module.
+"""
 import logging
 
+
 def setup_logging():
-    logger=logging.getLogger()
+    """
+    Setup for the logging module.
+    :return:
+    """
+    logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')

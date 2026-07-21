@@ -1,7 +1,16 @@
+"""
+Sets up the required databases for the bot to function.
+"""
 import sqlite3
 import logging
+
 logger = logging.getLogger(__name__)
+
+
 async def database_setup():
+    """
+    Sets up the required databases for the bot to function.
+    """
     conn = sqlite3.connect("data/duty_states.db")
     c = conn.cursor()
     c.execute("""

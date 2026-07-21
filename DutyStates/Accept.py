@@ -1,34 +1,52 @@
+"""
+The function that handles the duty state acceptances.
+"""
 import discord
 from datetime import datetime
-import sqlite3
+import config
 import logging
 
 logger = logging.getLogger(__name__)
 
-async def Accept(client, message, img1, img2, img3, user, fetch_msg, total_mins):
-    ds_channel_id = 1526379960179232818
-    ds_channel = client.get_channel(ds_channel_id)
-    gchannel_id = 1526383804464365628
-    gchannel = client.get_channel(gchannel_id)
 
-    points = None
+async def accept(client: discord.Client, message: discord.Message, img1: discord.Message, img2: discord.Message,
+                 img3: discord.Message, user: discord.User, fetch_msg: discord.Message, total_mins: int):
+    """
+    Handles the duty state acceptance. Calculates points, deletes the grading channel messages, sends the notification.
+    :param client: The bot.
+    :param message: The duty state message.
+    :param img1: The duty proof image in the grading channel.
+    :param img2: The tablist started image in the grading channel.
+    :param img3: The tablist ended image in the grading channel.
+    :param user: The user who graded the duty state.
+    :param fetch_msg: The message containing the duty state information in the grading channel.
+    :param total_mins: The length of the duty state in minutes.
+    :return:
+    """
+    dsgrade_channel_id = config.DSGRADE_CHANNEL_ID
+    gchannel = client.get_channel(dsgrade_channel_id)
 
-    def points_check(total_mins: int) -> int:
-        if total_mins < 2*60:
+    def points_check(time: int) -> int:
+        """
+        Checks the given amount of points for the given duty state length.
+        :param time: Length of the duty state, calculated in fetch.py.
+        :return:
+        """
+        if time < 2 * 60:
             return 1
-        elif total_mins < 4*60:
+        elif time < 4 * 60:
             return 2
-        elif total_mins < 6*60:
+        elif time < 6 * 60:
             return 3
-        elif total_mins < 8*60:
+        elif time < 8 * 60:
             return 4
-        elif total_mins < 10*60:
+        elif time < 10 * 60:
             return 5
-        elif total_mins < 15*60:
+        elif time < 15 * 60:
             return 6
-        elif total_mins < 20*60:
+        elif time < 20 * 60:
             return 7
-        elif total_mins < 24*60:
+        elif time < 24 * 60:
             return 8
         else:
             return 9

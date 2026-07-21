@@ -1,20 +1,30 @@
+"""
+Creates, updates, and upkeep's the leaderboard.
+"""
 import asyncio
 import datetime
 import discord
 import sqlite3
 import logging
+import config
 
 logger = logging.getLogger(__name__)
 
-async def Leaderboard(client):
-    embed = discord.Embed(title="Leaderboard", description="", color=discord.Color.yellow())
+
+async def leaderboard(client: discord.Client):
+    """
+    Creates and updates the leaderboard.
+    :param client: The bot.
+    :return:
+    """
+    embed = discord.Embed(title="leaderboard", description="", color=discord.Color.yellow())
     ctime = datetime.datetime.now()
     embed.set_footer(text=f"Updated: {ctime}")
-    channel_id = 1526609024768807053
-    channel = client.get_channel(channel_id)
+    ld_channel_id = config.LD_CHANNEL_ID
+    channel = client.get_channel(ld_channel_id)
     if not channel:
         try:
-            channel = await client.fetch_channel(channel_id)
+            channel = await client.fetch_channel(ld_channel_id)
         except Exception as e:
             logger.error(f"Failed to fetch leaderboard channel: {e}")
             return
@@ -35,9 +45,8 @@ async def Leaderboard(client):
         except Exception as e:
             logger.error(f"Error fetching leaderboard: {e}")
 
-    # 2. If we couldn't find/fetch the message, create a new one and save it
     if not lb:
-        embed = discord.Embed(title="Leaderboard", description="Loading...", color=discord.Color.yellow())
+        embed = discord.Embed(title="leaderboard", description="Loading...", color=discord.Color.yellow())
         embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
         lb = await channel.send(embed=embed)
 
@@ -49,35 +58,46 @@ async def Leaderboard(client):
         """, (lb.id,))
         conn.commit()
         conn.close()
-    await KeepUp(client, lb)
+    await keepup(client, lb)
     while True:
         await asyncio.sleep(60)
         try:
             lb = await channel.fetch_message(lb.id)
-            await KeepUp(client, lb)
+            await keepup(client, lb)
         except discord.NotFound:
-            logger.error("Leaderboard message was deleted during runtime! Breaking loop...")
+            logger.error("leaderboard message was deleted during runtime! Breaking loop...")
             break
         except Exception as e:
             logger.error(f"Error in leaderboard loop: {e}")
 
-async def KeepUp(client, lb):
+
+async def keepup(client: discord.Client, lb: discord.Message):
+    """
+    Keeps up the leaderboard.
+    :param client:
+    :param lb:
+    """
     if not lb.embeds:
-        embed = discord.Embed(title="Leaderboard", color=discord.Color.yellow())
+        embed = discord.Embed(title="leaderboard", color=discord.Color.yellow())
     else:
         embed = lb.embeds[0]
     conn = sqlite3.connect("data/leaderboard.db")
     c = conn.cursor()
     c.execute("SELECT * FROM leaderboard")
-    all = c.fetchall()
-    all.sort(key=lambda x: x[1], reverse=True)
+    all_officer = c.fetchall()
+    all_officer.sort(key=lambda x: x[1], reverse=True)
     description = ""
-    for idx, (user_id, graded) in enumerate(all, start=1):
-        try:
-            user = await client.fetch_user(user_id)
-            description += f"**{idx}.** - {user.mention} - {graded}\n"
-        except Exception:
-            description += f"**{idx}.** - *Deleted/Unknown User ({user_id})* - {graded}\n"
+    for idx, (user_id, graded) in enumerate(all_officer, start=1):
+        user = client.get_user(user_id)
+        if not user:
+            try:
+                user = await client.fetch_user(user_id)
+            except Exception:
+                user = None
+            if user:
+                description += f"**{idx}.** - {user.mention} - {graded}\n"
+            else:
+                description += f"**{idx}.** - *Deleted/Unknown User ({user_id})* - {graded}\n"
     embed.description = description
     embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
     await lb.edit(embed=embed)
