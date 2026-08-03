@@ -9,10 +9,17 @@ import database_setup
 import asyncio
 import config
 from DutyStates.Leaderboard import leaderboard
+from AA.AA_Leaderboard import aaleaderboard
 from distributor import Distribute
 from logs import setup_logging
 from discord_logging import DiscordLogHandler
-from Functions.AA_Promotions_Shouts import aa_promotions_shouts
+from AA.AA_Promotions_Shouts import aa_promotions_shouts
+from AA.AA_Leaderboard_Edit import aa_leaderboard_edit
+from Functions.IN_Handler import in_handler, in_deny_handler
+from access_check import has_required_role_member
+from Functions.IN_Remove_Handler import in_remove_handler
+from api import run_api
+import threading
 
 #logging setup
 setup_logging()
@@ -48,6 +55,9 @@ class Bot(commands.Bot):
         logger.info('Loading leaderboard...')
         asyncio.create_task(leaderboard(self))
         logger.info('leaderboard loaded')
+        logger.info('Loading AA leaderboard...')
+        asyncio.create_task(aaleaderboard(self))
+        logger.info('AA leaderboard loaded')
         logger.info('Loading commands...')
         for filename in os.listdir('./commands'):
             if filename.endswith('.py') and filename != '__init__.py':
@@ -87,6 +97,10 @@ async def on_ready():
     logger.info('Bot is up and running.')
     logger.warning('Discord logging TEST warning. Ignore.')
 
+if __name__ == "__main__":
+    api_thread = threading.Thread(target=run_api, daemon=True)
+    api_thread.start()
+    print("APIs started.")
 
 #$hello for testing
 @client.event
@@ -112,21 +126,59 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     :return:
     """
     aa_logs_channel_id = config.AA_LOGS_CHANNEL_ID
-    if payload.channel_id != aa_logs_channel_id:
+    in_channel_id = config.IN_CHANNEL_ID
+    if payload.channel_id == aa_logs_channel_id:
+        if payload.emoji.name == "aa_approve":
+            channel = client.get_channel(payload.channel_id)
+            guild = client.get_guild(payload.guild_id)
+            try:
+                message = await channel.fetch_message(payload.message_id)
+            except discord.NotFound:
+                return
+            await aa_promotions_shouts(message, client, guild)
+            await aa_leaderboard_edit(message, guild)
+        else:
+            return
+    elif payload.channel_id == in_channel_id:
+        if payload.emoji.name == "aa_approve":
+            reactor = payload.user_id
+            guild = client.get_guild(payload.guild_id)
+            valid1 = await has_required_role_member(guild, reactor, config.OFFICER_ROLE_ID)
+            valid2 = await has_required_role_member(guild, reactor, config.OVERWATCH_ROLE_ID)
+            if valid1 or valid2:
+                channel = client.get_channel(payload.channel_id)
+                guild = client.get_guild(payload.guild_id)
+                try:
+                    message = await channel.fetch_message(payload.message_id)
+                except discord.NotFound:
+                    return
+                await in_handler(message, guild)
+            else:
+                return
+        elif payload.emoji.name == "aa_deny":
+            reactor = payload.user_id
+            guild = client.get_guild(payload.guild_id)
+            valid1 = await has_required_role_member(guild, reactor, config.OFFICER_ROLE_ID)
+            valid2 = await has_required_role_member(guild, reactor, config.OVERWATCH_ROLE_ID)
+            if valid1 or valid2:
+                channel = client.get_channel(payload.channel_id)
+                guild = client.get_guild(payload.guild_id)
+                try:
+                    message = await channel.fetch_message(payload.message_id)
+                except discord.NotFound:
+                    return
+                await in_deny_handler(message, guild)
+            else:
+                return
+    else:
         return
 
-    if payload.emoji.name != "aa_approve":
-        return
-
-    channel = client.get_channel(payload.channel_id)
-    guild = client.get_guild(payload.guild_id)
-
-    try:
-        message = await channel.fetch_message(payload.message_id)
-    except discord.NotFound:
-        return
-
-    await aa_promotions_shouts(message, client, guild)
-
+@client.event
+async def on_message_delete(message: discord.Message):
+    if message.channel.id == config.IN_CHANNEL_ID:
+        guild = client.get_guild(config.TEST_GUILD_ID)
+        if not guild:
+            await client.fetch_guild(config.TEST_GUILD_ID)
+        await in_remove_handler(message, guild)
 
 client.run(config.DISCORD_TOKEN)

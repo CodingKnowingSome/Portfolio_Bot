@@ -9,6 +9,7 @@ import discord
 from discord.ui import Button, View
 import config
 from DutyStates.DenyModal import DenyModal
+from DutyStates.Accept import accept
 
 logger = logging.getLogger(__name__)
 
@@ -86,12 +87,12 @@ async def fetch(client: discord.Client, user: discord.User):
         if len(lines) > 9:
             embed.add_field(name="Notes: ", value=f"{lines[10]}", inline=False)
         view = View()
-        accept = Button(
-            label="accept",
+        accept_button = Button(
+            label="Accept",
             style=discord.ButtonStyle.green
         )
-        deny = Button(
-            label="deny",
+        deny_button = Button(
+            label="Deny",
             style=discord.ButtonStyle.red
         )
         fetch_msg = await gchannel.send(embed=embed)
@@ -106,8 +107,8 @@ async def fetch(client: discord.Client, user: discord.User):
             """
             await accept(client, message, img1, img2, img3, interaction.user, fetch_msg, total_mins)
 
-        accept.callback = accept_callback
-        view.add_item(accept)
+        accept_button.callback = accept_callback
+        view.add_item(accept_button)
 
         async def deny_callback(interaction: discord.Interaction):
             """
@@ -117,8 +118,8 @@ async def fetch(client: discord.Client, user: discord.User):
             modal = DenyModal(client, message, img1, img2, img3, interaction.user, fetch_msg)
             await interaction.response.send_modal(modal)
 
-        deny.callback = deny_callback
-        view.add_item(deny)
+        deny_button.callback = deny_callback
+        view.add_item(deny_button)
         await fetch_msg.edit(view=view)
         with sqlite3.connect("data/duty_states.db") as conn:
             c = conn.cursor()
@@ -126,14 +127,17 @@ async def fetch(client: discord.Client, user: discord.User):
             conn.commit()
         with sqlite3.connect("data/leaderboard.db") as conn:
             c = conn.cursor()
-            c.execute("SELECT graded FROM leaderboard WHERE user_id = ?", (user.id,))
+            c.execute("SELECT graded, total FROM leaderboard WHERE user_id = ?", (user.id,))
             result = c.fetchone()
             if result:
                 graded = result[0]
                 graded += 1
+                total = result[1]
+                total += 1
                 c.execute("UPDATE leaderboard SET graded = ? WHERE user_id = ?", (graded, user.id))
+                c.execute("UPDATE leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
             else:
-                c.execute("INSERT INTO leaderboard (user_id, graded) VALUES (?, ?)", (user.id, 1))
+                c.execute("INSERT INTO leaderboard (user_id, graded, total) VALUES (?, ?, ?)", (user.id, 1,1))
             conn.commit()
 
     except Exception as e:

@@ -5,7 +5,7 @@ import discord
 import logging
 import config
 
-logger = logging.getLogger('__name__')
+logger = logging.getLogger(__name__)
 
 
 async def aa_promotions_shouts(message: discord.Message, client: discord.Client, guild: discord.Guild):

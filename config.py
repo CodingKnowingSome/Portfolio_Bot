@@ -62,12 +62,21 @@ try:
     DS_CHANNEL_ID = get_env_int('DS_CHANNEL_ID')
     LD_CHANNEL_ID = get_env_int('LD_CHANNEL_ID')
     PROMOTION_SHOUTS_CHANNEL_ID = get_env_int('PROMOTION_SHOUTS_CHANNEL_ID')
+    AA_LD_CHANNEL_ID = get_env_int('AA_LEADERBOARD_CHANNEL_ID')
+    AA_LD_ARCHIVE_ID = get_env_int('AA_LEADERBOARD_ARCHIVE_CHANNEL_ID')
+    IN_CHANNEL_ID = get_env_int('IN_CHANNEL_ID')
 
     #roles
     PING_ROLE_ID = get_env_int('PING_ROLE_ID')
     GUEST_ROLE_ID = get_env_int('GUEST_ROLE_ID')
     OVERWATCH_ROLE_ID = get_env_int('OVERWATCH_ROLE_ID')
     ADMIN_ROLE_ID = get_env_int('ADMIN_ROLE_ID')
+    OFFICER_ROLE_ID = get_env_int('OFFICER_ROLE_ID')
+    IN_ROLE_ID = get_env_int('IN_ROLE_ID')
+    TESTER_ROLE_ID = get_env_int('TESTER_ROLE_ID')
+
+    #APIs
+    API_URL = get_env_str('API_URL')
 
 except ConfigurationError as e:
     logger.critical(e)

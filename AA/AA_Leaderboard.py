@@ -11,7 +11,7 @@ import config
 logger = logging.getLogger(__name__)
 
 
-async def leaderboard(client: discord.Client):
+async def aaleaderboard(client: discord.Client):
     """
     Creates and updates the leaderboard.
     :param client: The bot.
@@ -20,7 +20,7 @@ async def leaderboard(client: discord.Client):
     embed = discord.Embed(title="Leaderboard", description="", color=discord.Color.yellow())
     ctime = datetime.datetime.now()
     embed.set_footer(text=f"Updated: {ctime}")
-    ld_channel_id = config.LD_CHANNEL_ID
+    ld_channel_id = config.AA_LD_CHANNEL_ID
     channel = client.get_channel(ld_channel_id)
     if not channel:
         try:
@@ -30,7 +30,7 @@ async def leaderboard(client: discord.Client):
             return
     conn = sqlite3.connect("data/leaderboard.db")
     c = conn.cursor()
-    c.execute("SELECT value FROM leaderboard_meta WHERE key = 'message_id'")
+    c.execute("SELECT value FROM aa_leaderboard_meta WHERE key = 'message_id'")
     row = c.fetchone()
     conn.close()
 
@@ -53,7 +53,7 @@ async def leaderboard(client: discord.Client):
         conn = sqlite3.connect("data/leaderboard.db")
         c = conn.cursor()
         c.execute("""
-            INSERT OR REPLACE INTO leaderboard_meta (key, value) 
+            INSERT OR REPLACE INTO aa_leaderboard_meta (key, value) 
             VALUES ('message_id', ?)
         """, (lb.id,))
         conn.commit()
@@ -85,38 +85,79 @@ async def keepup(client: discord.Client, lb: discord.Message):
         try:
             guild = await client.fetch_guild(config.TEST_GUILD_ID)
         except Exception as e:
-            logger.error(f"Failed to fetch guild: {e}")
+            logger.error(f"Could not fetch guild: {e}.")
             return
     conn = sqlite3.connect("data/leaderboard.db")
     c = conn.cursor()
-    c.execute("SELECT * FROM leaderboard")
-    all_officer = c.fetchall()
+    c.execute("SELECT * FROM aa_leaderboard")
+    all_staff = c.fetchall()
     conn.close()
-    processed_officers = []
-    for user_id, graded, total in all_officer:
+    processed_staff = []
+    for user_id, lessons, total in all_staff:
         user = guild.get_member(user_id)
         if not user:
             try:
                 user = await guild.fetch_member(user_id)
             except Exception as e:
                 user = None
-                logger.warning(f"Failed to fetch member: {e}")
+                logger.warning(f"Failed to fetch member {user_id}: {e}")
         has_in_role = False
         if user:
             has_in_role = user.get_role(config.IN_ROLE_ID) is not None
             user_display = user.nick
             user_name = user_display.split("|")[0].strip()
         else:
-            user_name = f"*Deleted/Unknown User*"
+            user_name = f"*Deleted/Unknown User ({user_id})*"
         is_inactive = 1 if has_in_role else 0
-        processed_officers.append((is_inactive, graded or 0, total or 0, user_name, has_in_role))
-        processed_officers.sort(key=lambda x: (x[0], -x[1]))
-        description = ""
-        for idx, (is_inactive, graded, total, user_name, has_in_role) in enumerate(processed_officers, start=1):
-            if not has_in_role:
-                description += f"**{idx}.** - {user_name} - {graded} ({total})\n"
+        processed_staff.append((
+            is_inactive,
+            lessons or 0,
+            total or 0,
+            user_name,
+            has_in_role
+        ))
+    processed_staff.sort(key=lambda x: (x[0], -x[1]))
+    description = ""
+    for idx, (is_inactive, lessons, total, user_name, has_in_role) in enumerate(processed_staff, start=1):
+        if not has_in_role:
+            description += f"**{idx}.** - {user_name} - {lessons} ({total})\n"
+        else:
+            description += f"**{idx}.** - {user_name} - ⛔ ({total})\n"
+    embed.description = description if description else "NA"
+    embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
+    await lb.edit(embed=embed)
+
+
+
+
+
+
+
+
+
+
+    """sum old code
+    all_officer.sort(key=lambda x: x[1], reverse=True)
+    description = ""
+    for idx, (user_id, lessons, total) in enumerate(all_officer, start=1):
+        try:
+            user = await guild.fetch_member(user_id)
+        except Exception as e:
+            user = None
+            logger.warning(f"Failed to fetch leaderboard user: {e}")
+        if user:
+            user_split = user.nick.split("|")
+            user_name = user_split[0]
+            has_role = user.get_role(config.IN_ROLE_ID) is not None
+            if not has_role:
+                description += f"**{idx}.** - {user_name} - {lessons} ({total})\n"
             else:
                 description += f"**{idx}.** - {user_name} - ⛔ ({total})\n"
-        embed.description = description if description else "NA"
-        embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
-        await lb.edit(embed=embed)
+        else:
+            description += f"**{idx}.** - *Deleted/Unknown User ({user_id})* - {lessons} ({total})\n"
+    embed.description = description
+    if not description:
+        embed.description = "NA"
+    embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
+    await lb.edit(embed=embed)
+    """

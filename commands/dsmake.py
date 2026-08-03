@@ -40,10 +40,10 @@ class DSMake(commands.Cog):
         guest_role_id = config.GUEST_ROLE_ID
         if not await has_required_role(interaction, guest_role_id):
             return
-        conn = sqlite3.connect("data/ds_metadata.db")
-        c = conn.cursor()
-        c.execute('''SELECT * FROM ds_metadata WHERE user_id = ?''', (interaction.user.id,))
-        results = c.fetchone()
+        with sqlite3.connect("data/ds_metadata.db") as conn:
+            c = conn.cursor()
+            c.execute('''SELECT * FROM ds_metadata WHERE user_id = ?''', (interaction.user.id,))
+            results = c.fetchone()
         if not results:
             modal = GetMetadata()
             await interaction.response.send_modal(modal)
@@ -68,11 +68,10 @@ class GetMetadata(Modal):
             user_id = interaction.user.id
             username = data_split[0]
             timezone = data_split[1]
-            conn = sqlite3.connect("data/ds_metadata.db")
-            c = conn.cursor()
-            c.execute("""INSERT INTO ds_metadata VALUES (?,?,?)""", (user_id, username, timezone))
-            conn.commit()
-            conn.close()
+            with sqlite3.connect("data/ds_metadata.db") as conn:
+                c = conn.cursor()
+                c.execute("""INSERT INTO ds_metadata VALUES (?,?,?)""", (user_id, username, timezone))
+                conn.commit()
             await interaction.response.send_message(
                 f"{username}'s data has been added - you can create duty states now.", ephemeral=True)
 

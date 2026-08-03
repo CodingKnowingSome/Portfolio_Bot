@@ -15,7 +15,7 @@ class PersistentFetchView(discord.ui.View):
         style=discord.ButtonStyle.primary,
         custom_id="ds:persistent_fetch_button"
     )
-    async def fetch_button_callback(self, interaction: discord.Interaction):
+    async def fetch_button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         Calls the fetch function.
         :param interaction: discord.Interaction

@@ -11,44 +11,55 @@ async def database_setup():
     """
     Sets up the required databases for the bot to function.
     """
-    conn = sqlite3.connect("data/duty_states.db")
-    c = conn.cursor()
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS pending_duties (
-        message_id INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
-        PRIMARY KEY (message_id, user_id)
-    ) 
-    """)
-    conn.commit()
-    conn.close()
+    with sqlite3.connect("data/duty_states.db") as conn:
+        c = conn.cursor()
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS pending_duties (
+            message_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            PRIMARY KEY (message_id, user_id)
+        ) 
+        """)
+        conn.commit()
 
-    conn = sqlite3.connect("data/leaderboard.db")
-    c = conn.cursor()
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS leaderboard (
-        user_id INTEGER NOT NULL,
-        graded INTEGER NOT NULL
-    )
-    """)
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS leaderboard_meta (
-            key TEXT PRIMARY KEY,
-            value INTEGER
+    with sqlite3.connect("data/leaderboard.db") as conn:
+        c = conn.cursor()
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS leaderboard (
+            user_id INTEGER NOT NULL,
+            graded INTEGER DEFAULT 0,
+            total INTEGER DEFAULT 0
         )
-    """)
-    conn.commit()
-    conn.close()
+        """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS leaderboard_meta (
+                key TEXT PRIMARY KEY,
+                value INTEGER
+            )
+        """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS aa_leaderboard_meta (
+                key TEXT PRIMARY KEY,
+                value INTEGER
+            )
+        """)
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS aa_leaderboard (
+            user_id INTEGER NOT NULL,
+            lessons INTEGER DEFAULT 0,
+            total INTEGER DEFAULT 0
+        )
+        """)
+        conn.commit()
 
-    conn = sqlite3.connect("data/ds_metadata.db")
-    c = conn.cursor()
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS ds_metadata (
-        user_id INTEGER NOT NULL,
-        username TEXT NOT NULL,
-        timezone NOT NULL,
-        PRIMARY KEY (user_id, username)
-    )
-    """)
-    conn.commit()
-    conn.close()
+    with sqlite3.connect("data/ds_metadata.db") as conn:
+        c = conn.cursor()
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS ds_metadata (
+            user_id INTEGER NOT NULL,
+            username TEXT NOT NULL,
+            timezone NOT NULL,
+            PRIMARY KEY (user_id, username)
+        )
+        """)
+        conn.commit()

@@ -28,3 +28,13 @@ async def has_required_role(interaction: discord.Interaction, required_role_id: 
         return False
 
     return True
+
+async def has_required_role_member(guild: discord.Guild, user_id: int, required_role_id: int) -> bool:
+    member = guild.get_member(user_id)
+    if not member:
+        member = await guild.fetch_member(user_id)
+    has_role = member.get_role(required_role_id) is not None
+    if has_role:
+        return True
+    else:
+        return False

@@ -26,10 +26,10 @@ class Pending(commands.Cog):
         guest_role_id = config.GUEST_ROLE_ID
         if not await has_required_role(interaction, guest_role_id):
             return
-        conn = sqlite3.connect("data/duty_states.db")
-        c = conn.cursor()
-        c.execute("SELECT * FROM pending_duties WHERE user_id = ?", (interaction.user.id,))
-        results = c.fetchall()
+        with sqlite3.connect("data/duty_states.db") as conn:
+            c = conn.cursor()
+            c.execute("SELECT * FROM pending_duties WHERE user_id = ?", (interaction.user.id,))
+            results = c.fetchall()
         if len(results) > 0:
             await interaction.response.send_message(
                 f"{interaction.user.mention}, you have {len(results)} duty state(s) pending.", ephemeral=True)
