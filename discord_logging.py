@@ -8,7 +8,7 @@ import asyncio
 
 class DiscordLogHandler(logging.Handler):
     """
-    A handler for logging in the designated discord channel.
+    The discord logging handler.
     """
 
     def __init__(self, bot: discord.Client, channel_id: int, ping_role_id: int):
@@ -20,9 +20,12 @@ class DiscordLogHandler(logging.Handler):
 
     def emit(self, record):
         """
-        Emits useless logs, creates the embed.
-        :param record: The record of logging.
-        :return:
+        Emits not logged logs and creates the embed.
+        Args:
+            record: The record to emit or include in the embed.
+
+        Returns: NA
+
         """
         if not self.bot.is_ready() or self.bot.is_closed():
             return
@@ -53,8 +56,9 @@ class DiscordLogHandler(logging.Handler):
 
     async def send_log(self, embed: discord.Embed):
         """
-        Sends the log.
-        :param embed: The embed to send.
+        Sends the log in the designated Discord channel.
+        Args:
+            embed: The embed containing the log.
         """
         self._is_sending = True
         try:

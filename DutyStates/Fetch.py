@@ -1,5 +1,5 @@
 """
-Function that fetches the oldest pending duty state, extracts its data, outputs the information and images in the grading channel with the buttons. Adds 1 duty state to the grading user.
+Fetches the oldest duty state.
 """
 import asyncio
 import logging
@@ -16,10 +16,13 @@ logger = logging.getLogger(__name__)
 
 async def fetch(client: discord.Client, user: discord.User):
     """
-    Function that fetches the oldest pending duty state, extracts its data, outputs the information and images in the grading channel with the buttons. Adds 1 duty state to the grading user.
-    :param client: The bot.
-    :param user: The grading user.
-    :return:
+    Fetches the oldest duty state, outputs the basic info, the three images with an accept and deny button.
+    Args:
+        client: The bot.
+        user: The grading user as discord.User.
+
+    Returns: NA
+
     """
     dsgrade_channel_id = config.DSGRADE_CHANNEL_ID
     gchannel = client.get_channel(dsgrade_channel_id)
@@ -87,10 +90,12 @@ async def fetch(client: discord.Client, user: discord.User):
         if len(lines) > 9:
             embed.add_field(name="Notes: ", value=f"{lines[10]}", inline=False)
         view = View()
+        # noinspection PyTypeChecker
         accept_button = Button(
             label="Accept",
             style=discord.ButtonStyle.green
         )
+        # noinspection PyTypeChecker
         deny_button = Button(
             label="Deny",
             style=discord.ButtonStyle.red
@@ -102,8 +107,9 @@ async def fetch(client: discord.Client, user: discord.User):
 
         async def accept_callback(interaction: discord.Interaction):
             """
-            Calls the accept function to handle the acceptance.
-            :param interaction: discord.Interaction
+            Accept button callback, calls the accept function to handle the acceptance.
+            Args:
+                interaction: The interaction object from discord.Interaction.
             """
             await accept(client, message, img1, img2, img3, interaction.user, fetch_msg, total_mins)
 
@@ -112,8 +118,9 @@ async def fetch(client: discord.Client, user: discord.User):
 
         async def deny_callback(interaction: discord.Interaction):
             """
-            Calls the deny function to handle the denial.
-            :param interaction: discord.Interaction
+            Deny button callback, calls the deny function to handle the denial.
+            Args:
+                interaction: The interaction object from discord.Interaction.
             """
             modal = DenyModal(client, message, img1, img2, img3, interaction.user, fetch_msg)
             await interaction.response.send_modal(modal)
@@ -137,34 +144,9 @@ async def fetch(client: discord.Client, user: discord.User):
                 c.execute("UPDATE leaderboard SET graded = ? WHERE user_id = ?", (graded, user.id))
                 c.execute("UPDATE leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
             else:
-                c.execute("INSERT INTO leaderboard (user_id, graded, total) VALUES (?, ?, ?)", (user.id, 1,1))
+                c.execute("INSERT INTO leaderboard (user_id, graded, total) VALUES (?, ?, ?)", (user.id, 1, 1))
             conn.commit()
 
     except Exception as e:
         await gchannel.send("Something went wrong.")
         print("Something went wrong while fetching duty state message id: ", e)
-
-
-'''
-async def sendfetch(client, fetch):
-    """
-    Old function to send new fetch message after the graded duty state's debug log in the grading channel.
-    :param client:
-    :param fetch:
-    """
-    channel = client.get_channel(config.DSGRADE_CHANNEL_ID)
-    embed = discord.Embed(
-        title="Fetch a duty state!",
-        color=discord.Color.blue()
-    )
-    button = Button(label="Fetch a duty state!", style=discord.ButtonStyle.primary)
-    await fetch.delete()
-    view = View()
-    view.add_item(button)
-    fetch = await channel.send(embed=embed, view=view)
-
-    async def button_callback(interaction: discord.Interaction):
-        await fetch(client, interaction.user, fetch)
-
-    button.callback = button_callback
-'''

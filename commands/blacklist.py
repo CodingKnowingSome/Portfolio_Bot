@@ -1,3 +1,6 @@
+"""
+Add/Remove someone to/from the blacklist database.
+"""
 from datetime import datetime
 import discord
 from discord import app_commands
@@ -25,6 +28,17 @@ class Blacklist(commands.Cog):
     ])
     async def blacklist(self, interaction: discord.Interaction, username: str, action: app_commands.Choice[str],
                         reason: str = "No reason provided."):
+        """
+        Adds/Removes a user from the blacklist database, with reason by calling the blacklist API endpoint.
+        Args:
+            interaction: The interaction object from discord.Interaction.
+            username: The username of the user.
+            action: Add or remove the user.
+            reason: The reason for the said action.
+
+        Returns: NA
+
+        """
         tester_role_id = config.TESTER_ROLE_ID
         if not await has_required_role(interaction, tester_role_id):
             return
@@ -49,10 +63,9 @@ class Blacklist(commands.Cog):
                                 title="Blacklist removed",
                                 color=discord.Color.green()
                             )
-                            embed.add_field(name="Username", value=f"**{data["username"]}** ({data["user_id"]})",
-                                            inline=True)
-                            embed.add_field(name="Reason", value=f"{reason}", inline=True)
-                            embed.add_field(name="Added by", value=f"{interaction.user.mention}", inline=True)
+                            embed.add_field(name="Username", value=f"**{data["username"]}** ({data["user_id"]})")
+                            embed.add_field(name="Reason", value=f"{reason}")
+                            embed.add_field(name="Added by", value=f"{interaction.user.mention}")
                             embed.set_footer(text=f"Time: {datetime.now()}")
                             await interaction.followup.send(embed=embed, ephemeral=False)
                         else:
@@ -60,10 +73,9 @@ class Blacklist(commands.Cog):
                                 title="Blacklist added",
                                 color=discord.Color.red()
                             )
-                            embed.add_field(name="Username", value=f"**{data["username"]}** ({data["user_id"]})",
-                                            inline=True)
-                            embed.add_field(name="Reason", value=f"{reason}", inline=True)
-                            embed.add_field(name="Added by", value=f"{interaction.user.mention}", inline=True)
+                            embed.add_field(name="Username", value=f"**{data["username"]}** ({data["user_id"]})")
+                            embed.add_field(name="Reason", value=f"{reason}")
+                            embed.add_field(name="Added by", value=f"{interaction.user.mention}")
                             embed.set_footer(text=f"Time: {datetime.now()}")
                             await interaction.followup.send(embed=embed, ephemeral=False)
                     else:
@@ -79,4 +91,9 @@ class Blacklist(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
+    """
+    Command setup.
+    Args:
+        bot: The bot.
+    """
     await bot.add_cog(Blacklist(bot))

@@ -10,6 +10,7 @@ class PersistentFetchView(discord.ui.View):
         super().__init__(timeout=None)
         self.bot = bot
 
+    # noinspection PyUnusedLocal
     @discord.ui.button(
         label="fetch a duty state!",
         style=discord.ButtonStyle.primary,
@@ -17,7 +18,9 @@ class PersistentFetchView(discord.ui.View):
     )
     async def fetch_button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
-        Calls the fetch function.
-        :param interaction: discord.Interaction
+        Calls the fetch function for duty state fetching in the grading channel.
+        Args:
+            interaction: The interaction object from discord.Interaction.
+            button: I don't know, it takes 3 arguments.
         """
         await fetch(self.bot, interaction.user)

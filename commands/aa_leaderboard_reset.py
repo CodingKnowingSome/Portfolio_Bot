@@ -1,5 +1,5 @@
 """
-Reset the leaderboard.
+Command used by Officer+ to reset the AA leaderboard.
 """
 import discord
 from discord.ext import commands
@@ -20,9 +20,12 @@ class AALeaderboardReset(commands.Cog):
     @app_commands.command(name='aaleaderboardreset', description="Resets the AA leaderboard.")
     async def aaleaderboardreset(self, interaction: discord.Interaction):
         """
-        Resets the leaderboard.
-        :param interaction: discord.Interaction.
-        :return:
+        Copies the AA leaderboard into an archive channel, changes every weekly lesson to 0 in the AA database.
+        Args:
+            interaction: The interaction object from discord.Interaction.
+
+        Returns: NA
+
         """
         await interaction.response.defer(ephemeral=True)
         officer_role_id = config.OFFICER_ROLE_ID
@@ -93,7 +96,8 @@ class AALeaderboardReset(commands.Cog):
 
 async def setup(bot: commands.Bot):
     """
-    Setup.
-    :param bot: The bot.
+    Command setup.
+    Args:
+        bot: The bot.
     """
     await bot.add_cog(AALeaderboardReset(bot))

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class Distribute:
     """
-    Distributes the messages to different handlers based on the channel they were sent in.
+    Class with the functions responsible for distributing messages to different handlers.
     """
 
     def __init__(self):
@@ -24,9 +24,12 @@ class Distribute:
 
     async def handle(self, message: discord.Message):
         """
-        Distributes the messages to different handlers based on the channel they were sent in.
-        :param message: The message.
-        :return:
+        Decides which handler to use.
+        Args:
+            message: The message as discord.Message.
+
+        Returns: Calls the correct handler based on the channel passing in the message.
+
         """
         if message.author.bot:
             return None
@@ -39,15 +42,17 @@ class Distribute:
     @staticmethod
     async def duty_listener(message: discord.Message):
         """
-        Calls the duty_listener function for the message in duty states.
-        :param message:
+        Calls the duty state handler.
+        Args:
+            message: The message as discord.Message.
         """
         await Events.DutyListener.dutylistener(message)
 
     @staticmethod
     async def general(message: discord.Message):
         """
-        Calls the general function with the message.
-        :param message: The message.
+        Calls the general message handler.
+        Args:
+            message: The message as discord.Message.
         """
         await Events.General.generalchecker(message)

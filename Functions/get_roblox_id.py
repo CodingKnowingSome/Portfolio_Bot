@@ -1,9 +1,21 @@
+"""
+Returns the user id and name of a Roblox user by username using Roblox API.
+"""
 import requests
 import logging
 
 logger = logging.getLogger(__name__)
 
+
 def get_roblox_id(username: str):
+    """
+    Returns the user id of a Roblox user by username using Roblox API.
+    Args:
+        username: The username of the Roblox user.
+
+    Returns: The user's user id and name.
+
+    """
     if not username:
         return None, None
     clean_username = username.strip()

@@ -1,15 +1,18 @@
 """
-Function used to check if a user can use a certain command.
+Functions used to check if a user can use a certain command.
 """
 import discord
 
 
 async def has_required_role(interaction: discord.Interaction, required_role_id: int) -> bool:
     """
-    Function used to check if a user can use a certain command.
-    :param interaction: discord.Interaction
-    :param required_role_id: The ID of the required role to use the said command.
-    :return:
+    Cheks if a user has a given role a role above the given role.
+    Args:
+        interaction: The interaction object from discord.Interaction.
+        required_role_id: The id of the required role.
+
+    Returns: True/False.
+
     """
     required_role = interaction.guild.get_role(required_role_id)
 
@@ -29,7 +32,18 @@ async def has_required_role(interaction: discord.Interaction, required_role_id: 
 
     return True
 
+
 async def has_required_role_member(guild: discord.Guild, user_id: int, required_role_id: int) -> bool:
+    """
+    Checks if a member has a given role.
+    Args:
+        guild: The server as discord.Guild.
+        user_id: The id of the user to be checked.
+        required_role_id: The id of the required role.
+
+    Returns: True/False.
+
+    """
     member = guild.get_member(user_id)
     if not member:
         member = await guild.fetch_member(user_id)

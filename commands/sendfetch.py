@@ -1,5 +1,5 @@
 """
-Sends a new message to fetch duty states in the grading channel.
+Sends a new duty state fetch message.
 """
 import discord
 from discord.ext import commands
@@ -20,9 +20,12 @@ class SendFetch(commands.Cog):
     @app_commands.command(name="sendfetch", description="Send the duty state fetch message again.")
     async def sendfetch(self, interaction: discord.Interaction):
         """
-        Send the duty state fetch message again.
-        :param interaction: discord.Interaction
-        :return:
+        Sends a new duty state fetch message (Admin).
+        Args:
+            interaction: The interaction object from discord.Interaction.
+
+        Returns: NA
+
         """
         admin_role_id = config.ADMIN_ROLE_ID
         if not await has_required_role(interaction, admin_role_id):
@@ -40,8 +43,9 @@ class SendFetch(commands.Cog):
 
 async def setup(bot: commands.Bot):
     """
-    Setup.
-    :param bot: The bot.
+    Command setup.
+    Args:
+        bot: The bot.
     """
     await bot.add_cog(SendFetch(bot))
     bot.add_view(PersistentFetchView(bot))

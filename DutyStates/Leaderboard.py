@@ -13,9 +13,12 @@ logger = logging.getLogger(__name__)
 
 async def leaderboard(client: discord.Client):
     """
-    Creates and updates the leaderboard.
-    :param client: The bot.
-    :return:
+    Creates and edits the leaderboard, start the upkeep process.
+    Args:
+        client: The bot.
+
+    Returns: NA
+
     """
     embed = discord.Embed(title="Leaderboard", description="", color=discord.Color.yellow())
     ctime = datetime.datetime.now()
@@ -72,9 +75,13 @@ async def leaderboard(client: discord.Client):
 
 async def keepup(client: discord.Client, lb: discord.Message):
     """
-    Keeps up the leaderboard.
-    :param client:
-    :param lb:
+    Fetches Officers from the database, orders them, creates the new embed and updates the leaderboard.
+    Args:
+        client: The bot.
+        lb: The leaderboard as a discord.Message.
+
+    Returns: NA
+
     """
     if not lb.embeds:
         embed = discord.Embed(title="Leaderboard", color=discord.Color.yellow())

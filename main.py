@@ -90,25 +90,30 @@ distributor = Distribute()
 @client.event
 async def on_ready():
     """
-    Prints and logs when the bot is logged in and ready.
+    Logs that the bot is ready.
     """
     print('We have logged in as {0.user}'.format(client))
     logger.info('We have logged in as {0.user}'.format(client))
     logger.info('Bot is up and running.')
     logger.warning('Discord logging TEST warning. Ignore.')
 
+
 if __name__ == "__main__":
     api_thread = threading.Thread(target=run_api, daemon=True)
     api_thread.start()
     print("APIs started.")
 
+
 #$hello for testing
 @client.event
 async def on_message(message: discord.Message):
     """
-    Hands messages to the distributor.
-    :param message: The message.
-    :return:
+    Hands over messages to the distributor.
+    Args:
+        message: The message as discord.Message.
+
+    Returns: NA
+
     """
     if message.author.bot:
         return
@@ -121,9 +126,12 @@ async def on_message(message: discord.Message):
 @client.event
 async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     """
-    Handles the event when a reaction is added to send AA promotion shout if needed.
-    :param payload: The data of the reaction.
-    :return:
+    Handles reaction events for AA logs and inactivity notices.
+    Args:
+        payload: The raw reaction event as discord.RawReactionActionEvent.
+
+    Returns: NA
+
     """
     aa_logs_channel_id = config.AA_LOGS_CHANNEL_ID
     in_channel_id = config.IN_CHANNEL_ID
@@ -173,12 +181,16 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     else:
         return
 
+
 @client.event
 async def on_message_delete(message: discord.Message):
+    """
+    Calls the IN remove handler when an IN message is removed.
+    Args:
+        message: The message as discord.Message.
+    """
     if message.channel.id == config.IN_CHANNEL_ID:
-        guild = client.get_guild(config.TEST_GUILD_ID)
-        if not guild:
-            await client.fetch_guild(config.TEST_GUILD_ID)
-        await in_remove_handler(message, guild)
+        await in_remove_handler(message)
+
 
 client.run(config.DISCORD_TOKEN)

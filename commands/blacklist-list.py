@@ -1,3 +1,6 @@
+"""
+Lists all the active blacklists in an embed with multiple pages.
+"""
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -9,12 +12,19 @@ import math
 logger = logging.getLogger(__name__)
 API_URL = config.API_URL
 
+
 class BlacklistList(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @app_commands.command(name="blacklist-list", description="List blacklisted users.")
     async def blacklist_list(self, interaction: discord.Interaction):
+        """
+        Calls the blacklist API endpoint for the blacklisted users, calls the build_blacklist_embed function to
+        create an embed, if there are over 10 blacklists, adds the buttons, and sends the embed.
+        Args:
+            interaction: The interaction object from discord.Interaction.
+        """
         await interaction.response.defer()
         try:
             async with aiohttp.ClientSession() as session:
@@ -28,17 +38,35 @@ class BlacklistList(commands.Cog):
                             await interaction.followup.send(embed=embed)
                         else:
                             view = Blacklistpager(items, count, author_id=interaction.user.id)
-                            msg = await interaction.followup.send(embed=embed, view=view)
+                            await interaction.followup.send(embed=embed, view=view)
                     else:
                         await interaction.followup.send("An error occurred, please try again later.", ephemeral=True)
         except Exception as e:
             logger.error(f"Error in /blacklist-list: {e}")
             await interaction.followup.send("An error occurred, please try again later.", ephemeral=True)
 
+
 async def setup(bot: commands.Bot):
+    """
+    Command setup.
+    Args:
+        bot: The bot.
+    """
     await bot.add_cog(BlacklistList(bot))
 
+
 async def build_blacklist_embed(items: list, count: int, page: int, per_page: int = 10) -> discord.Embed:
+    """
+    Creates the embed with the blacklisted users.
+    Args:
+        items: The blacklisted users.
+        count: The number of blacklisted users.
+        page: The current page the embed is on.
+        per_page: The number of users per page (default to 10).
+
+    Returns: The current embed page.
+
+    """
     total_pages = math.ceil(count / per_page) if count > 0 else 1
     embed = discord.Embed(
         title="Blacklisted Users",
@@ -60,6 +88,7 @@ async def build_blacklist_embed(items: list, count: int, page: int, per_page: in
     embed.set_footer(text=f"Page {page + 1} of {total_pages} | Total: {count} entries.")
     return embed
 
+
 class Blacklistpager(discord.ui.View):
     def __init__(self, items: list, count: int, author_id: int, per_page: int = 10):
         super().__init__(timeout=180)
@@ -72,6 +101,9 @@ class Blacklistpager(discord.ui.View):
         self.update_button_states()
 
     def update_button_states(self):
+        """
+        Disables the corresponding buttons on the first and last page.
+        """
         self.prev_btn.disabled = (self.current_page == 0)
         self.next_btn.disabled = (self.current_page == self.total_pages - 1)
 
@@ -81,16 +113,30 @@ class Blacklistpager(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label="**<** Previous", style=discord.ButtonStyle.secondary)
+    # noinspection PyUnusedLocal
+    @discord.ui.button(label="**<** Previous")
     async def prev_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """
+        The previous button.
+        Args:
+            interaction: The interaction object from discord.Interaction.
+            button: The discord.ui.Button.
+        """
         if self.current_page > 0:
             self.current_page -= 1
             self.update_button_states()
             embed = await build_blacklist_embed(self.items, self.count, self.current_page, self.per_page)
-            await interaction.response.edit_message( embed=embed, view=self)
+            await interaction.response.edit_message(embed=embed, view=self)
 
-    @discord.ui.button(label="Next **>**", style=discord.ButtonStyle.secondary)
+    # noinspection PyUnusedLocal
+    @discord.ui.button(label="Next **>**")
     async def next_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """
+        The next button.
+        Args:
+            interaction: The interaction object from discord.Interaction.
+            button: The discord.ui.Button.
+        """
         if self.current_page < self.total_pages - 1:
             self.current_page += 1
             self.update_button_states()

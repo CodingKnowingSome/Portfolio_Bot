@@ -1,5 +1,5 @@
 """
-Reset the leaderboard.
+Command used by Overwatch+ to reset the Officer leaderboard.
 """
 import discord
 from discord.ext import commands
@@ -20,9 +20,12 @@ class LeaderboardReset(commands.Cog):
     @app_commands.command(name='leaderboardreset', description="Resets the leaderboard.")
     async def leaderboardreset(self, interaction: discord.Interaction):
         """
-        Resets the leaderboard.
-        :param interaction: discord.Interaction.
-        :return:
+        Copies the leaderboard into the archive channel, sets every "graded" to 0 in the database.
+        Args:
+            interaction: The interaction object from discord.Interaction.
+
+        Returns: NA
+
         """
         await interaction.response.defer(ephemeral=True)
         overwatch_role_id = config.OVERWATCH_ROLE_ID
@@ -41,7 +44,7 @@ class LeaderboardReset(commands.Cog):
                 logger.error(f"Could not fetch guild: {e}.")
                 return
         description = ""
-        for user_id, lessons, total in all_officer:
+        for user_id, graded, total in all_officer:
             user = guild.get_member(user_id)
             if not user:
                 try:
@@ -93,7 +96,8 @@ class LeaderboardReset(commands.Cog):
 
 async def setup(bot: commands.Bot):
     """
-    Setup.
-    :param bot: The bot.
+    Command setup.
+    Args:
+        bot: The bot.
     """
     await bot.add_cog(LeaderboardReset(bot))

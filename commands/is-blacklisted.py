@@ -1,5 +1,5 @@
 """
-Used to check a users KoS status (KoS, previously KoS, not KoS).
+Checks if a user is blacklisted or not.
 """
 import discord
 from discord import app_commands
@@ -12,50 +12,50 @@ logger = logging.getLogger(__name__)
 API_URL = config.API_URL
 
 
-class Kos(commands.Cog):
+class IsBlacklisted(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name='kos', description="Check users KoS status")
+    @app_commands.command(name="is-blacklisted", description="Check if a user is blacklisted")
     @app_commands.describe(username="Roblox username")
-    async def kos(self, interaction: discord.Interaction, username: str | None = None):
+    async def is_blacklisted(self, interaction: discord.Interaction, username: str | None = None):
         """
-        Used to check the defined users KoS status.
+        Checks if a user is blacklisted or not.
         Args:
             interaction: The interaction object from discord.Interaction.
-            username: The username of the user to be checked, defaults to the interaction.user's server nick.
+            username: The user to be checked (optional, defaults to the interaction.user.nick)
         """
         await interaction.response.defer()
         if not username:
             username = interaction.user.nick
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(f"{API_URL}/koscheck/{username}") as resp:
+                async with session.get(f"{API_URL}/blacklist/{username}") as resp:
                     data = await resp.json()
                     if resp.status == 200:
                         status = data.get("status")
-                        if status == "current_kos":
-                            msg = f"**{data["username"]}** is **KoS**."
+                        if status is True:
                             embed = discord.Embed(
-                                description=msg,
-                                color=discord.Color.green()
+                                title="Blacklist",
+                                color=discord.Color.red(),
                             )
-                        elif status == "former_kos":
-                            msg = f"**{data["username"]}** is **not KoS**.\n-# {data["username"]} was previously KoS."
-                            embed = discord.Embed(
-                                description=msg,
-                                color=discord.Color.red()
-                            )
+                            entry = data.get("blacklist")[0]
+                            embed.add_field(name="Username", value=entry.get("username", username))
+                            embed.add_field(name="Reason", value=entry.get("reason", "No reason provided."))
+                            embed.add_field(name="Added by", value=f"<@{entry.get("added_by", "Unknown")}>")
+                            embed.add_field(name="Last edited", value=f"<t:{entry.get('last_edit')}:R>")
+                            await interaction.followup.send(embed=embed)
                         else:
-                            msg = f"**{data["username"]}** is **not KoS**."
                             embed = discord.Embed(
-                                description=msg,
-                                color=discord.Color.red()
+                                title="Blacklist",
+                                color=discord.Color.green(),
+                                description=f"{username} is not blacklisted."
                             )
-                        await interaction.followup.send(embed=embed)
+                            await interaction.followup.send(embed=embed)
                     else:
                         await interaction.followup.send(
                             f"An error occurred while checking the users KoS status: {data.get("error", "Status check failed")}")
+
         except Exception as e:
             logger.error(f"An error occurred while checking the users ({username}) KoS status: {e}")
             await interaction.followup.send(
@@ -68,4 +68,4 @@ async def setup(bot: commands.Bot):
     Args:
         bot: The bot.
     """
-    await bot.add_cog(Kos(bot))
+    await bot.add_cog(IsBlacklisted(bot))

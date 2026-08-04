@@ -1,5 +1,5 @@
 """
-Denial modal to get the denial reason for a duty state.
+Deny modal for the duty state grader to input the denial reason.
 """
 from discord.ui import Modal, TextInput
 import discord

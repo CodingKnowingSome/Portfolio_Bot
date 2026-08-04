@@ -12,16 +12,19 @@ logger = logging.getLogger(__name__)
 
 class ConfigurationError(ValueError):
     """
-    Configuration Error.
+    Configuration error.
     """
     pass
 
 
 def get_env_int(key: str) -> int:
     """
-    Gets the content from the .env file in integer format.
-    :param key: Ky for the .env.
-    :return:
+    Get environment variable as integer.
+    Args:
+        key: The .env key.
+
+    Returns: The environment variable value as integer.
+
     """
     value = os.getenv(key)
     if not value:
@@ -34,9 +37,12 @@ def get_env_int(key: str) -> int:
 
 def get_env_str(key: str) -> str:
     """
-    Gets the content from the .env file in string format.
-    :param key: Key for the .env.
-    :return:
+    Get environment variable as string.
+    Args:
+        key: The .env key.
+
+    Returns: The environment variable value as string.
+
     """
     value = os.getenv(key)
     if not value:

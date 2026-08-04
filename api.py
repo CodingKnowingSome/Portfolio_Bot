@@ -1,3 +1,6 @@
+"""
+API endpoints and database setup.
+"""
 from flask import Flask, request, jsonify
 import sqlite3
 from Functions.get_roblox_id import get_roblox_id
@@ -9,7 +12,11 @@ app = Flask(__name__)
 db_path = "data/kos_blacklist.db"
 logger = logging.getLogger(__name__)
 
+
 def init_db():
+    """
+    Creates the databases if they don't exist.
+    """
     with sqlite3.connect(db_path) as conn:
         c = conn.cursor()
         c.execute("""
@@ -28,8 +35,14 @@ def init_db():
         """)
         conn.commit()
 
+
 @app.route('/api/kos', methods=['POST'])
 def set_kos():
+    """
+    API endpoint for setting a user's KoS status.
+    Returns: Success or failure packet.
+
+    """
     data = request.json or {}
     username = data.get('username')
     status = data.get('status')
@@ -53,8 +66,17 @@ def set_kos():
         "status": status
     }), 200
 
+
 @app.route('/api/koscheck/<string:username>', methods=['GET'])
 def koscheck(username):
+    """
+    API endpoint for checking a user's KoS status.
+    Args:
+        username: The user to be checked.
+
+    Returns: Packet with their KoS status.
+
+    """
     user_id, exact_username = get_roblox_id(username)
     if not user_id:
         return jsonify({"success": False, "error": "User not found"}), 404
@@ -72,7 +94,6 @@ def koscheck(username):
             "status": "never_kos",
         }), 200
 
-    kos = row
     return jsonify({
         "success": True,
         "user_id": user_id,
@@ -80,8 +101,14 @@ def koscheck(username):
         "status": "current_kos" if row[0] == True else "former_kos"
     }), 200
 
+
 @app.route('/api/blacklist', methods=['POST'])
 def set_blacklist():
+    """
+    Sets a user's blacklist.
+    Returns: Success/failure packet.
+
+    """
     data = request.json or {}
     username = data.get('username')
     action = data.get("action", "add")
@@ -116,8 +143,14 @@ def set_blacklist():
         "last_edit": last_edit
     }), 200
 
+
 @app.route('/api/blacklistlist', methods=['GET'])
 def get_blacklist():
+    """
+    Lists all active blacklisted users.
+    Returns: A packet including all blacklists or a failure packet.
+
+    """
     with sqlite3.connect(db_path) as conn:
         c = conn.cursor()
         c.execute("""
@@ -154,8 +187,17 @@ def get_blacklist():
         "blacklist": blacklist
     }), 200
 
+
 @app.route('/api/blacklist/<string:username>', methods=['GET'])
 def is_blacklist(username):
+    """
+    API endpoint for checking a user's blacklist.
+    Args:
+        username: The user to be checked.
+
+    Returns: A packet containing their status, or a failure packet.
+
+    """
     user_id, exact_username = get_roblox_id(username)
     if not user_id:
         return jsonify({"success": False, "error": "User not found"}), 404
@@ -182,9 +224,14 @@ def is_blacklist(username):
         "blacklist": blacklist if row else None
     }), 200
 
+
 def run_api():
+    """
+    Runs the APIs.
+    """
     init_db()
     app.run(host="127.0.0.1", port=5000, debug=False, use_reloader=False)
+
 
 if __name__ == "__main__":
     run_api()

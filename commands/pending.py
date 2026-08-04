@@ -1,5 +1,5 @@
 """
-Checks the number of pending duty states of the user.
+Checks the number of pending duty states of a user.
 """
 from discord.ext import commands
 from discord import app_commands
@@ -19,9 +19,12 @@ class Pending(commands.Cog):
     @app_commands.command(name="pending", description="Check for your pending duty states!")
     async def pending(self, interaction: discord.Interaction):
         """
-        Checks the number of pending duty states of the user.
-        :param interaction: discord.Interaction
-        :return:
+        Checks for the number of pending duty states of a user.
+        Args:
+            interaction: The interaction object from discord.Interaction.
+
+        Returns: NA
+
         """
         guest_role_id = config.GUEST_ROLE_ID
         if not await has_required_role(interaction, guest_role_id):
@@ -40,7 +43,8 @@ class Pending(commands.Cog):
 
 async def setup(bot: commands.Bot):
     """
-    Setup.
-    :param bot: The bot.
+    Command setup.
+    Args:
+        bot: The bot.
     """
     await bot.add_cog(Pending(bot))

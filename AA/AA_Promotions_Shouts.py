@@ -1,5 +1,5 @@
 """
-Sends a shout notifying the promoted students once the attendance log is approved.
+When a log is accepted notifies the promoted personnel.
 """
 import discord
 import logging
@@ -10,11 +10,14 @@ logger = logging.getLogger(__name__)
 
 async def aa_promotions_shouts(message: discord.Message, client: discord.Client, guild: discord.Guild):
     """
-    Sends a shouts notifying the promoted students.
-    :param message: The attendance log message.
-    :param client: The bot.
-    :param guild: The server.
-    :return:
+    Sends a shout pinging the members in the server, includes all promoted personnel when a log is accepted.
+    Args:
+        message: The log message as a discord.Message.
+        client: The bot.
+        guild: The server as discord.Guild.
+
+    Returns: NA
+
     """
     promotion_shouts_channel_id = config.PROMOTION_SHOUTS_CHANNEL_ID
     promotion_channel = client.get_channel(promotion_shouts_channel_id)

@@ -6,8 +6,9 @@ import logging
 
 def setup_logging():
     """
-    Setup for the logging module.
-    :return:
+    Sets up the file and console logging.
+    Returns: The logger.
+
     """
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)

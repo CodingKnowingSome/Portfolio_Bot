@@ -13,9 +13,14 @@ logger = logging.getLogger(__name__)
 
 async def dutylistener(message: discord.Message):
     """
-    Checks if the message sent in the duty state channel follows the correct format.
-    :param message: The duty state message.
-    :return:
+    Checks if a message sent in the duty state channel follows the correct format, if so it adds it to the pending
+    duty states and notifies the user, otherwise it notifies the user of the first error.
+    #TODO: The error should contain everything wrong with the submission.
+    Args:
+        message: The duty state message as discord.Message.
+
+    Returns: NA
+
     """
     try:
         lines = message.content.splitlines()

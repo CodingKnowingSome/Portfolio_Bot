@@ -1,3 +1,6 @@
+"""
+Called when an AA log is accepted, edits the database by adding the lessons for Staff members.
+"""
 import discord
 import logging
 import sqlite3
@@ -7,6 +10,12 @@ logger = logging.getLogger(__name__)
 
 
 async def aa_leaderboard_edit(message: discord.Message, guild: discord.Guild):
+    """
+    Edits the AA leaderboard database by adding the lessons for Staff members when a log is accepted.
+    Args:
+        message: The log message as a discord.Message.
+        guild: The server as discord.Guild.
+    """
     try:
 
         lines = message.content.splitlines()
@@ -43,7 +52,8 @@ async def aa_leaderboard_edit(message: discord.Message, guild: discord.Guild):
                         c.execute("UPDATE aa_leaderboard SET lessons = ? WHERE user_id = ?", (lessons, user.id))
                         c.execute("UPDATE aa_leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
                     else:
-                        c.execute("INSERT INTO aa_leaderboard (user_id, lessons, total) VALUES (?, ?, ?)", (user.id, 1, 1))
+                        c.execute("INSERT INTO aa_leaderboard (user_id, lessons, total) VALUES (?, ?, ?)",
+                                  (user.id, 1, 1))
                     conn.commit()
         else:
             pass

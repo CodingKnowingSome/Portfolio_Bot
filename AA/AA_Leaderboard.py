@@ -13,9 +13,12 @@ logger = logging.getLogger(__name__)
 
 async def aaleaderboard(client: discord.Client):
     """
-    Creates and updates the leaderboard.
-    :param client: The bot.
-    :return:
+    Creates and edits the leaderboard, start the upkeep process.
+    Args:
+        client: The bot.
+
+    Returns: NA
+
     """
     embed = discord.Embed(title="Leaderboard", description="", color=discord.Color.yellow())
     ctime = datetime.datetime.now()
@@ -72,9 +75,13 @@ async def aaleaderboard(client: discord.Client):
 
 async def keepup(client: discord.Client, lb: discord.Message):
     """
-    Keeps up the leaderboard.
-    :param client:
-    :param lb:
+    Fetches Officers from the database, orders them, creates the new embed and updates the leaderboard.
+    Args:
+        client: The bot.
+        lb: The leaderboard as a discord.Message.
+
+    Returns: NA
+
     """
     if not lb.embeds:
         embed = discord.Embed(title="Leaderboard", color=discord.Color.yellow())
@@ -126,38 +133,3 @@ async def keepup(client: discord.Client, lb: discord.Message):
     embed.description = description if description else "NA"
     embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
     await lb.edit(embed=embed)
-
-
-
-
-
-
-
-
-
-
-    """sum old code
-    all_officer.sort(key=lambda x: x[1], reverse=True)
-    description = ""
-    for idx, (user_id, lessons, total) in enumerate(all_officer, start=1):
-        try:
-            user = await guild.fetch_member(user_id)
-        except Exception as e:
-            user = None
-            logger.warning(f"Failed to fetch leaderboard user: {e}")
-        if user:
-            user_split = user.nick.split("|")
-            user_name = user_split[0]
-            has_role = user.get_role(config.IN_ROLE_ID) is not None
-            if not has_role:
-                description += f"**{idx}.** - {user_name} - {lessons} ({total})\n"
-            else:
-                description += f"**{idx}.** - {user_name} - ⛔ ({total})\n"
-        else:
-            description += f"**{idx}.** - *Deleted/Unknown User ({user_id})* - {lessons} ({total})\n"
-    embed.description = description
-    if not description:
-        embed.description = "NA"
-    embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
-    await lb.edit(embed=embed)
-    """

@@ -1,3 +1,6 @@
+"""
+Used to edit a users KoS status.
+"""
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -8,6 +11,7 @@ from access_check import has_required_role
 
 logger = logging.getLogger(__name__)
 API_URL = config.API_URL
+
 
 class KosMake(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -21,6 +25,16 @@ class KosMake(commands.Cog):
         app_commands.Choice(name="False", value="False"),
     ])
     async def kosmake(self, interaction: discord.Interaction, username: str, status: str):
+        """
+        Edits a user's KoS status.
+        Args:
+            interaction: The interaction object from discord.Interaction.
+            username: The username of the user to be edited.
+            status: The KoS status of the user as a boolean.
+
+        Returns: NA
+
+        """
         tester_role_id = config.TESTER_ROLE_ID
         if not await has_required_role(interaction, tester_role_id):
             return
@@ -38,11 +52,18 @@ class KosMake(commands.Cog):
                     data = await resp.json()
                     if resp.status == 200 and data["success"]:
                         state_str = "ADDED to" if status is True else "REMOVED from"
-                        await interaction.followup.send(f"**{data["username"]}** ({data["user_id"]}) {state_str} KoS database.", ephemeral=True)
+                        await interaction.followup.send(
+                            f"**{data["username"]}** ({data["user_id"]}) {state_str} KoS database.", ephemeral=True)
                     else:
                         await interaction.followup.send(f"Error: {data("error", "Failed to update KoS status.")}")
         except Exception as e:
             logger.error(f"Error in /kosmake: {e}")
 
+
 async def setup(bot: commands.Bot):
+    """
+    Command setup.
+    Args:
+        bot: The bot.
+    """
     await bot.add_cog(KosMake(bot))

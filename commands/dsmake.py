@@ -1,5 +1,5 @@
 """
-Creates the Duty State text for user based on metadata and inputs.
+Creates a formatted duty state based on the user inputs and collected metadata.
 """
 import discord
 from discord.ext import commands
@@ -27,15 +27,19 @@ class DSMake(commands.Cog):
     async def dsmake(self, interaction: discord.Interaction, start_time: str, end_time: str, duty: str, duty_link: str,
                      start_tablist: str, end_tablist: str):
         """
-        Creates a Duty State text for user based on metadata and inputs, and outputs it as an ephemeral response.
-        :param interaction: discord.Interaction
-        :param start_time: Starting time of the duty state
-        :param end_time: Ending time of the duty state
-        :param duty: Duty.
-        :param duty_link: Link of the duty screenshot.
-        :param start_tablist: Link to Tablist Started.
-        :param end_tablist: Link to Tablist Ended.
-        :return:
+        Creates the duty state based on the user inputs and collected metadata, if there is no metadata for the user
+        calls a modal to ask for it.
+        Args:
+            interaction: The interaction object from discord.Interaction.
+            start_time: The starting time of the duty state.
+            end_time: The ending time of the duty state.
+            duty: The name of the duty.
+            duty_link: The link to the duty proof.
+            start_tablist: The link to the start tablist screenshot.
+            end_tablist: The link to the end tablist screenshot.
+
+        Returns: NA
+
         """
         guest_role_id = config.GUEST_ROLE_ID
         if not await has_required_role(interaction, guest_role_id):
@@ -78,7 +82,8 @@ class GetMetadata(Modal):
 
 async def setup(bot: commands.Bot):
     """
-    Setup.
-    :param bot: The bot.
+    Command setup.
+    Args:
+        bot: The bot.
     """
     await bot.add_cog(DSMake(bot))

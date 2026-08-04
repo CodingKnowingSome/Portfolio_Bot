@@ -1,5 +1,5 @@
 """
-The function that handles the duty state acceptances.
+Called when a duty state is accepted, handles the grading channel message deletion and notifies the user.
 """
 import discord
 from datetime import datetime
@@ -12,25 +12,32 @@ logger = logging.getLogger(__name__)
 async def accept(client: discord.Client, message: discord.Message, img1: discord.Message, img2: discord.Message,
                  img3: discord.Message, user: discord.User, fetch_msg: discord.Message, total_mins: int):
     """
-    Handles the duty state acceptance. Calculates points, deletes the grading channel messages, sends the notification.
-    :param client: The bot.
-    :param message: The duty state message.
-    :param img1: The duty proof image in the grading channel.
-    :param img2: The tablist started image in the grading channel.
-    :param img3: The tablist ended image in the grading channel.
-    :param user: The user who graded the duty state.
-    :param fetch_msg: The message containing the duty state information in the grading channel.
-    :param total_mins: The length of the duty state in minutes.
-    :return:
+    Calls points_check to check for the given points, creates and sends the embed, deletes the info message and
+    images in the grading channel.
+    Args:
+        client: The bot.
+        message: The duty state message as discord.Message.
+        img1: The duty proof image in the grading channel as discord.Message.
+        img2: The tablist started image in the grading channel as discord.Message.
+        img3: The tablist ended image in the grading channel as discord.Message.
+        user: The user grading the duty state as discord.User.
+        fetch_msg: The message with the duty state info as discord.Message.
+        total_mins: The total time of the duty states as int.
+
+    Returns: NA
+
     """
     dsgrade_channel_id = config.DSGRADE_CHANNEL_ID
     gchannel = client.get_channel(dsgrade_channel_id)
 
     def points_check(time: int) -> int:
         """
-        Checks the given amount of points for the given duty state length.
-        :param time: Length of the duty state, calculated in fetch.py.
-        :return:
+        Checks for the amount of points given by the duty state length.
+        Args:
+            time: The length of the duty state as int.
+
+        Returns: The amount of points given as int.
+
         """
         if time < 2 * 60:
             return 1
