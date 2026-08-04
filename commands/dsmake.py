@@ -7,7 +7,7 @@ from discord import app_commands
 import logging
 import sqlite3
 from discord.ui import Modal, TextInput
-from access_check import has_required_role
+from Functions.access_check import has_required_role
 import config
 
 logger = logging.getLogger(__name__)

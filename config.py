@@ -84,6 +84,10 @@ try:
     #APIs
     API_URL = get_env_str('API_URL')
 
+    #Emoji names
+    APPROVE_EMOJI_NAME = get_env_str('APPROVE_EMOJI_NAME')
+    DENY_EMOJI_NAME = get_env_str('DENY_EMOJI_NAME')
+
 except ConfigurationError as e:
     logger.critical(e)
     raise e

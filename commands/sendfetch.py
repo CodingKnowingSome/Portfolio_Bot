@@ -8,7 +8,7 @@ import logging
 import config
 
 from DutyStates.Views import PersistentFetchView
-from access_check import has_required_role
+from Functions.access_check import has_required_role
 
 logger = logging.getLogger(__name__)
 

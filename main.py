@@ -10,13 +10,13 @@ import asyncio
 import config
 from DutyStates.Leaderboard import leaderboard
 from AA.AA_Leaderboard import aaleaderboard
-from distributor import Distribute
+from Functions.distributor import Distribute
 from logs import setup_logging
 from discord_logging import DiscordLogHandler
 from AA.AA_Promotions_Shouts import aa_promotions_shouts
 from AA.AA_Leaderboard_Edit import aa_leaderboard_edit
 from Functions.IN_Handler import in_handler, in_deny_handler
-from access_check import has_required_role_member
+from Functions.access_check import has_required_role_member
 from Functions.IN_Remove_Handler import in_remove_handler
 from api import run_api
 import threading
@@ -136,7 +136,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     aa_logs_channel_id = config.AA_LOGS_CHANNEL_ID
     in_channel_id = config.IN_CHANNEL_ID
     if payload.channel_id == aa_logs_channel_id:
-        if payload.emoji.name == "aa_approve":
+        if payload.emoji.name == config.APPROVE_EMOJI_NAME:
             channel = client.get_channel(payload.channel_id)
             guild = client.get_guild(payload.guild_id)
             try:
@@ -148,7 +148,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         else:
             return
     elif payload.channel_id == in_channel_id:
-        if payload.emoji.name == "aa_approve":
+        if payload.emoji.name == config.APPROVE_EMOJI_NAME:
             reactor = payload.user_id
             guild = client.get_guild(payload.guild_id)
             valid1 = await has_required_role_member(guild, reactor, config.OFFICER_ROLE_ID)
@@ -163,7 +163,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
                 await in_handler(message, guild)
             else:
                 return
-        elif payload.emoji.name == "aa_deny":
+        elif payload.emoji.name == config.DENY_EMOJI_NAME:
             reactor = payload.user_id
             guild = client.get_guild(payload.guild_id)
             valid1 = await has_required_role_member(guild, reactor, config.OFFICER_ROLE_ID)

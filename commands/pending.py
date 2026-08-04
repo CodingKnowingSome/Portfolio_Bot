@@ -6,7 +6,7 @@ from discord import app_commands
 import discord
 import sqlite3
 import logging
-from access_check import has_required_role
+from Functions.access_check import has_required_role
 import config
 
 logger = logging.getLogger(__name__)

@@ -41,9 +41,12 @@ class IsBlacklisted(commands.Cog):
                             )
                             entry = data.get("blacklist")[0]
                             embed.add_field(name="Username", value=entry.get("username", username))
-                            embed.add_field(name="Reason", value=entry.get("reason", "No reason provided."))
-                            embed.add_field(name="Added by", value=f"<@{entry.get("added_by", "Unknown")}>")
-                            embed.add_field(name="Last edited", value=f"<t:{entry.get('last_edit')}:R>")
+                            embed.add_field(name="Reason", value=entry.get("reason", "No reason provided."),
+                                            inline=False)
+                            embed.add_field(name="Added by", value=f"<@{entry.get("added_by", "Unknown")}>",
+                                            inline=False)
+                            embed.add_field(name="Last edited", value=f"<t:{entry.get('last_edit')}:R>",
+                                            inline=False)
                             await interaction.followup.send(embed=embed)
                         else:
                             embed = discord.Embed(

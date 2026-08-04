@@ -8,7 +8,7 @@ from discord.ext import commands
 import aiohttp
 import logging
 import config
-from access_check import has_required_role
+from Functions.access_check import has_required_role
 
 logger = logging.getLogger(__name__)
 API_URL = config.API_URL
