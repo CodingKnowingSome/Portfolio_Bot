@@ -46,9 +46,15 @@ class KosMake(commands.Cog):
         else:
             pass
         payload = {"username": username, "status": status}
+        api_key = config.API_KEY
+
+        headers = {
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json",
+        }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(f"{API_URL}/kos", json=payload) as resp:
+                async with session.post(f"{API_URL}/kos", json=payload, headers=headers) as resp:
                     data = await resp.json()
                     if resp.status == 200 and data["success"]:
                         state_str = "ADDED to" if status is True else "REMOVED from"

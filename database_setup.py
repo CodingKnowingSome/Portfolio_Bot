@@ -26,7 +26,7 @@ async def database_setup():
         c = conn.cursor()
         c.execute("""
         CREATE TABLE IF NOT EXISTS leaderboard (
-            user_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL PRIMARY KEY,
             graded INTEGER DEFAULT 0,
             total INTEGER DEFAULT 0
         )
@@ -45,7 +45,7 @@ async def database_setup():
         """)
         c.execute("""
         CREATE TABLE IF NOT EXISTS aa_leaderboard (
-            user_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL PRIMARY KEY,
             lessons INTEGER DEFAULT 0,
             total INTEGER DEFAULT 0
         )
@@ -58,8 +58,18 @@ async def database_setup():
         CREATE TABLE IF NOT EXISTS ds_metadata (
             user_id INTEGER NOT NULL,
             username TEXT NOT NULL,
-            timezone NOT NULL,
+            timezone TEXT NOT NULL,
             PRIMARY KEY (user_id, username)
+        )
+        """)
+        conn.commit()
+
+    with sqlite3.connect("data/keys.db") as conn:
+        c = conn.cursor()
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS keys (
+            public TEXT NOT NULL,
+            user_id INTEGER NOT NULL PRIMARY KEY
         )
         """)
         conn.commit()

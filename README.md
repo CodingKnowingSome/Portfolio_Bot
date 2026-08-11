@@ -2,7 +2,7 @@
 
 A Discord bot created by *KapitanyDrake* for showcase purposes.
 
-- Python 3.14
+- Python 3.14 (developed and tested)
 - `discord.py`
 - Flask
 - SQLite3
@@ -13,7 +13,8 @@ Features the duty state workflow, KoS checker, blacklists, AA student promotion 
 
 ### Duty State Submission and Grading
 
-- **Duty State Formatter:** `/dsmake` formats your duty state based on user inputs.
+- **Duty State Formatter:** `/dsmake` formats your duty state based on user inputs. The metadata can be edited by the
+  user.
 - **Format checking:** The bot verifies the formatting before adding the duty state to the pending list.
 - **Grading**: Pulls the oldest duty state, uses a modal to get the denial reason.
 - **Leaderboard:** Leaderboard of the Officers with the amount of graded duty state, updates every minute.
@@ -30,7 +31,7 @@ Features the duty state workflow, KoS checker, blacklists, AA student promotion 
 
 ### Flask and Roblox API
 
-- **API and Database:** Runs a Flask API on port 5000 with its own database.
+- **API and Database:** Runs a Flask API on port 5000 with its own database. Session API verification is used.
 - **KoS:** Keeps track of current and past KoS users by their Roblox ID.
 - **Blacklists:** Keeps track of current blacklists by Roblox IDs.
 
@@ -43,29 +44,33 @@ Features the duty state workflow, KoS checker, blacklists, AA student promotion 
 - **/DutyStates:** Leaderboard, duty state grading.
 - **/Events:** Misc. event, duty state submissions.
 - **/Functions:** Helper functions used across the bot.
+    - */Data_Handling:* Functions for data requests.
 
 ## Slash Commands
 
 | Command               | Description                                                                 | Permission |
 |:----------------------|:----------------------------------------------------------------------------|:-----------|
-| `/aaleaderboardreset` | Resets the AA leaderboard and archives the current state.                   | Officer+   |
+| `/aaleaderboardreset` | Resets the AA leaderboard and archives the current state.                   | Officer    |
 | `/blacklist`          | Blacklist or unblacklist a user.                                            | Tester     |
 | `/blacklist-list`     | Lists all the current blacklists.                                           | Everyone   |
+| `/data-message-send`  | Sends the data requests message and selection again.                        | Admin      |
 | `/dice`               | Outputs a random number between 1 and the user given max.                   | Everyone   |
-| `/dsmake`             | Formats the duty state based on the user inputs and the already known info. | Guest+     |
+| `/dsmake`             | Formats the duty state based on the user inputs and the already known info. | Guest      |
+| `/edit-ds-metadata`   | Edit your duty state metadata                                               | Everyone   |
 | `/is-blacklisted`     | Checks if a user is blacklisted.                                            | Everyone   |
 | `/kos`                | Checks the user's KoS status.                                               | Everyone   |
 | `/kosmake`            | Used to edit a user's KoS status.                                           | Tester     |
+| `/kylo`               | Gives a random weight, and a percent of becoming a blackhole.               | Everyone   |
 | `/leaderboardreset`   | Resets and archives the Officer leaderboard.                                | Overwatch  |
-| `/pending`            | Checks the amount of pending duty states the user has.                      | Guest+     |
+| `/pending`            | Checks the amount of pending duty states the user has.                      | Guest      |
 | `/ping`               | Responds with the latency of the bot.                                       | Everyone   |
 | `/sendfetch`          | Sends a new duty state fetch message.                                       | Admin      |
 
 ## Running It
 
-### Prequisites
+### Prerequisites
 
-- Python 3.12+
+- Python 3.14 (developed and tested)
 - Git
 
 ### Installation
@@ -92,8 +97,8 @@ DSGRADE_CHANNEL_ID=dutystate_grade_channel_id
 DS_CHANNEL_ID=dutystate_channel_id
 LD_CHANNEL_ID=leaderboard_channel_id
 PROMOTION_SHOUTS_CHANNEL_ID=aa_promotion_shouts_channel_id
-AA_LEADERBOARD_CHANNEL_ID=aa_learerboard_channel_id
-AA_LEADERBOARD_ARCHIVE_CHANNEL_ID=aa_leaderaboard_archive_channel_id
+AA_LEADERBOARD_CHANNEL_ID=aa_leaderboard_channel_id
+AA_LEADERBOARD_ARCHIVE_CHANNEL_ID=aa_leaderboard_archive_channel_id
 OFFICER_ROLE_ID=officer_role_id
 IN_ROLE_ID=inactivity_notice_role_id
 IN_CHANNEL_ID=inactivity_notice_submission_channel_id
@@ -101,6 +106,8 @@ API_URL=http://127.0.0.1:5000/api
 TESTER_ROLE_ID=tester_role_id
 APPROVE_EMOJI_NAME=approve_emoji_name
 DENY_EMOJI_NAME=deny_emoji_name
+DATA_CHANNEL_ID=data_channel_id
+DATA_LOG_CHANNEL_ID=data_log_channel_id
 ```
 
 ### Running the Bot

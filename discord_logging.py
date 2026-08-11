@@ -5,6 +5,8 @@ import logging
 import discord
 import asyncio
 
+logger = logging.getLogger(__name__)
+
 
 class DiscordLogHandler(logging.Handler):
     """
@@ -69,6 +71,6 @@ class DiscordLogHandler(logging.Handler):
             if channel:
                 await channel.send(content=f'<@&{self.ping_role_id}>', embed=embed)
         except Exception as e:
-            print(e)
+            logger.error(e)
         finally:
             self._is_sending = False

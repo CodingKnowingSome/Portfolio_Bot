@@ -60,6 +60,7 @@ class DSMake(commands.Cog):
 class GetMetadata(Modal):
     def __init__(self):
         super().__init__(title="Metadata to create your duty states")
+        # noinspection PyTypeChecker
         self.data = TextInput(label='Format: {username} | {timezone}', style=discord.TextStyle.paragraph)
         self.add_item(self.data)
 

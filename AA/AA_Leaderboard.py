@@ -67,7 +67,7 @@ async def aaleaderboard(client: discord.Client):
         try:
             await keepup(client, lb)
         except discord.NotFound:
-            logger.error("leaderboard message was deleted during runtime! Breaking loop...")
+            logger.error("leaderboard message was deleted during runtime! Stopping loop.")
             break
         except Exception as e:
             logger.error(f"Error in leaderboard loop: {e}")

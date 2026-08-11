@@ -1,16 +1,20 @@
 """
 API endpoints and database setup.
 """
+from functools import wraps
+
 from flask import Flask, request, jsonify
 import sqlite3
 from Functions.get_roblox_id import get_roblox_id
 from datetime import datetime
 import logging
 import requests
+import config
 
 app = Flask(__name__)
 db_path = "data/kos_blacklist.db"
 logger = logging.getLogger(__name__)
+API_KEY = config.API_KEY
 
 
 def init_db():
@@ -36,7 +40,44 @@ def init_db():
         conn.commit()
 
 
+def require_api_key(f):
+    """
+    API key checker.
+    Args:
+        f:
+
+    Returns:
+
+    """
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        """
+
+        Args:
+            *args:
+            **kwargs:
+
+        Returns:
+
+        """
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or auth_header != f"Bearer {API_KEY}":
+            return (
+                jsonify({
+                    "error": (
+                        "Unauthorized: Invalid or missing API Authorization key."
+                    )
+                }),
+                401,
+            )
+        return f(*args, **kwargs)
+
+    return decorated
+
+
 @app.route('/api/kos', methods=['POST'])
+@require_api_key
 def set_kos():
     """
     API endpoint for setting a user's KoS status.
@@ -68,6 +109,7 @@ def set_kos():
 
 
 @app.route('/api/koscheck/<string:username>', methods=['GET'])
+@require_api_key
 def koscheck(username):
     """
     API endpoint for checking a user's KoS status.
@@ -103,6 +145,7 @@ def koscheck(username):
 
 
 @app.route('/api/blacklist', methods=['POST'])
+@require_api_key
 def set_blacklist():
     """
     Sets a user's blacklist.
@@ -145,6 +188,7 @@ def set_blacklist():
 
 
 @app.route('/api/blacklistlist', methods=['GET'])
+@require_api_key
 def get_blacklist():
     """
     Lists all active blacklisted users.
@@ -189,6 +233,7 @@ def get_blacklist():
 
 
 @app.route('/api/blacklist/<string:username>', methods=['GET'])
+@require_api_key
 def is_blacklist(username):
     """
     API endpoint for checking a user's blacklist.

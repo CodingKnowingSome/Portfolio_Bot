@@ -26,9 +26,15 @@ class BlacklistList(commands.Cog):
             interaction: The interaction object from discord.Interaction.
         """
         await interaction.response.defer()
+        api_key = config.API_KEY
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(f"{API_URL}/blacklistlist") as resp:
+                async with session.get(f"{API_URL}/blacklistlist", headers=headers) as resp:
                     data = await resp.json()
                     if resp.status == 200 and data.get("success"):
                         count = data.get("count", 0)
@@ -82,7 +88,7 @@ async def build_blacklist_embed(items: list, count: int, page: int, per_page: in
         ts = f"<t:{entry['last_edit']}:R>" if entry.get('last_edit') else "N/A"
         embed.add_field(
             name=f"{entry['username']} (`{entry['user_id']}`)",
-            value=f"**Reason:** {entry['reason']}\n**By: <@{entry['added_by']}> ¤ **Updated:** {ts}\n",
+            value=f"**Reason:** {entry['reason']}\n**Updated:** {ts}\n",
             inline=False
         )
     embed.set_footer(text=f"Page {page + 1} of {total_pages} | Total: {count} entries.")

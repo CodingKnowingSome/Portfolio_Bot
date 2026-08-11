@@ -4,6 +4,7 @@ Configures variables based on the .env file.
 import os
 import logging
 from dotenv import load_dotenv
+import secrets
 
 load_dotenv()
 
@@ -71,6 +72,8 @@ try:
     AA_LD_CHANNEL_ID = get_env_int('AA_LEADERBOARD_CHANNEL_ID')
     AA_LD_ARCHIVE_ID = get_env_int('AA_LEADERBOARD_ARCHIVE_CHANNEL_ID')
     IN_CHANNEL_ID = get_env_int('IN_CHANNEL_ID')
+    DATA_CHANNEL_ID = get_env_int('DATA_CHANNEL_ID')
+    DATA_LOG_CHANNEL_ID = get_env_int('DATA_LOG_CHANNEL_ID')
 
     #roles
     PING_ROLE_ID = get_env_int('PING_ROLE_ID')
@@ -83,6 +86,7 @@ try:
 
     #APIs
     API_URL = get_env_str('API_URL')
+    API_KEY = secrets.token_hex(32)
 
     #Emoji names
     APPROVE_EMOJI_NAME = get_env_str('APPROVE_EMOJI_NAME')

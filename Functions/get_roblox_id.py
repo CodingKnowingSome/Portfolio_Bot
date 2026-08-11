@@ -18,6 +18,9 @@ def get_roblox_id(username: str):
     """
     if not username:
         return None, None
+    if "|" in username:
+        username = username.split("|")[0]
+        username = username[0]
     clean_username = username.strip()
     url = "https://users.roblox.com/v1/usernames/users"
     payload = {"usernames": [clean_username], "excludeBannedUsers": False}

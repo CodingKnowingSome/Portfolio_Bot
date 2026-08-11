@@ -1,0 +1,100 @@
+import base64
+
+import discord
+from discord import app_commands
+from discord.ext import commands
+import logging
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes, serialization
+import sqlite3
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+
+class Encrypt(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @app_commands.command(name="encrypt", description="Encrypt a message for a specific user.")
+    @app_commands.describe(message="The message to encrypt.")
+    @app_commands.describe(target_user="The user to encrypt for.")
+    async def encrypt(self, interaction: discord.Interaction, message: str, target_user: discord.User):
+        await interaction.response.defer(ephemeral=True)
+        public_pem = None
+        with sqlite3.connect("data/keys.db") as conn:
+            c = conn.cursor()
+            c.execute("SELECT public FROM keys WHERE user_id = ?", (target_user.id,))
+            row = c.fetchone()
+        if row:
+            public_pem = row[0]
+        if not public_pem:
+            await interaction.followup.send(
+                f"The target user ({target_user.mention}) has not yet created their key pair.", ephemeral=True)
+            return
+        try:
+            public_key = serialization.load_pem_public_key(public_pem.encode("utf-8"))
+            cyphertext = public_key.encrypt(
+                message.encode(),
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None
+                )
+            )
+            encrypt_b64 = base64.b64encode(cyphertext).decode()
+            embed = discord.Embed(
+                title="Encrypted message",
+                description=f"This is the encrypted message for {target_user.mention}:",
+                color=discord.Color.green(),
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Recipient", value=f"{target_user.mention}")
+            embed.add_field(name="Sender", value=f"{interaction.user.mention}")
+            embed.add_field(name="Encrypted message", value=f"```{encrypt_b64}```", inline=False)
+            try:
+                try:
+                    await target_user.send(embed=embed)
+                    try:
+                        embed.add_field(name="Original message", value=f"{message}")
+                        await interaction.user.send(embed=embed)
+                        await interaction.followup.send("The message was sent to both user's DMs.", ephemeral=True)
+                    except discord.Forbidden:
+                        await interaction.followup.send(
+                            "The message was sent to the recipient. As your DMs are blocked, please save this.",
+                            embed=embed, ephemeral=True)
+                    except Exception as e:
+                        await interaction.followup.send(f"An error occurred, please try again later.", ephemeral=True)
+                        logger.warning(f"An error occurred in encryption: {e}")
+                except discord.Forbidden:
+                    embed.add_field(name="Original message", value=f"{message}")
+                    try:
+                        await interaction.user.send(embed=embed)
+                        await interaction.followup.send(
+                            "Message was sent to you. Please forward it to the recipient as their DMS are blocked.",
+                            ephemeral=True)
+                    except discord.Forbidden:
+                        await interaction.followup.send(
+                            "Both user's DMs are blocked. Please save this message and forward it to the recipient.",
+                            embed=embed, ephemeral=True)
+                    except Exception as e:
+                        await interaction.followup.send(f"An error occurred, please try again later.", ephemeral=True)
+                        logger.warning(f"An error occurred in encryption: {e}")
+                except Exception as e:
+                    await interaction.followup.send(f"An error occurred, please try again later.", ephemeral=True)
+                    logger.warning(f"An error occurred in encryption: {e}")
+            except Exception as e:
+                await interaction.followup.send(f"An error occurred, please try again later.", ephemeral=True)
+                logger.warning(f"An error occurred in encryption: {e}")
+        except Exception as e:
+            await interaction.followup.send(f"An error occurred, please try again later.", ephemeral=True)
+            logger.warning(f"An error occurred in encryption: {e}")
+
+
+async def setup(bot: commands.Bot):
+    """
+    Command setup.
+    Args:
+        bot: The bot.
+    """
+    await bot.add_cog(Encrypt(bot))

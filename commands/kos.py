@@ -28,9 +28,15 @@ class Kos(commands.Cog):
         await interaction.response.defer()
         if not username:
             username = interaction.user.nick
+        api_key = config.API_KEY
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(f"{API_URL}/koscheck/{username}") as resp:
+                async with session.get(f"{API_URL}/koscheck/{username}", headers=headers) as resp:
                     data = await resp.json()
                     if resp.status == 200:
                         status = data.get("status")

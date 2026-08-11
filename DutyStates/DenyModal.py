@@ -13,6 +13,7 @@ class DenyModal(Modal):
     def __init__(self, client: discord.Client, message: discord.Message, img1: discord.Message, img2: discord.Message,
                  img3: discord.Message, user: discord.User, fetch_msg: discord.Message):
         super().__init__(title="Reason for denial: ")
+        # noinspection PyTypeChecker
         self.reason = TextInput(label="Reason for denial: ", style=discord.TextStyle.paragraph)
         self.add_item(self.reason)
         self.client = client

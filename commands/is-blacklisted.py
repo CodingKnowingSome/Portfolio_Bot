@@ -28,9 +28,15 @@ class IsBlacklisted(commands.Cog):
         await interaction.response.defer()
         if not username:
             username = interaction.user.nick
+        api_key = config.API_KEY
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(f"{API_URL}/blacklist/{username}") as resp:
+                async with session.get(f"{API_URL}/blacklist/{username}", headers=headers) as resp:
                     data = await resp.json()
                     if resp.status == 200:
                         status = data.get("status")
@@ -42,8 +48,6 @@ class IsBlacklisted(commands.Cog):
                             entry = data.get("blacklist")[0]
                             embed.add_field(name="Username", value=entry.get("username", username))
                             embed.add_field(name="Reason", value=entry.get("reason", "No reason provided."),
-                                            inline=False)
-                            embed.add_field(name="Added by", value=f"<@{entry.get("added_by", "Unknown")}>",
                                             inline=False)
                             embed.add_field(name="Last edited", value=f"<t:{entry.get('last_edit')}:R>",
                                             inline=False)

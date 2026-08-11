@@ -20,6 +20,8 @@ from Functions.access_check import has_required_role_member
 from Functions.IN_Remove_Handler import in_remove_handler
 from api import run_api
 import threading
+from Functions.Views import PersistentFetchView
+from Functions.Data_Handling.DataRequestsView import DataRequestsView
 
 #logging setup
 setup_logging()
@@ -58,6 +60,10 @@ class Bot(commands.Bot):
         logger.info('Loading AA leaderboard...')
         asyncio.create_task(aaleaderboard(self))
         logger.info('AA leaderboard loaded')
+        logger.info('Registering persistent views...')
+        self.add_view(PersistentFetchView(self, "Fetch a duty state", "ds:persistent_fetch"))
+        self.add_view(DataRequestsView())
+        logger.info('Persistent views registered.')
         logger.info('Loading commands...')
         for filename in os.listdir('./commands'):
             if filename.endswith('.py') and filename != '__init__.py':

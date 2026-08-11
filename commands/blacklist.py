@@ -53,9 +53,15 @@ class Blacklist(commands.Cog):
             "reason": reason,
             "added_by": interaction.user.id
         }
+        api_key = config.API_KEY
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(f"{API_URL}/blacklist", json=payload) as resp:
+                async with session.post(f"{API_URL}/blacklist", json=payload, headers=headers) as resp:
                     data = await resp.json()
                     if resp.status == 200 and data.get("success"):
                         if action.value == "remove":

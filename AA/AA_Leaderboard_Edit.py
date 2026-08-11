@@ -58,4 +58,4 @@ async def aa_leaderboard_edit(message: discord.Message, guild: discord.Guild):
         else:
             pass
     except Exception as e:
-        logger.error(e)
+        logger.error(f"Failed to edit the AA Leaderboard database: {e}")

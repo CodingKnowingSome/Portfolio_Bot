@@ -8,3 +8,5 @@ data
 data/
 codebase_bundler.py
 project_codebase_bundle.md
+commands/keys.py.ignore
+commands/encrypt.py.ignore

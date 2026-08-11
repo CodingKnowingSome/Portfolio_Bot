@@ -7,7 +7,7 @@ from discord import app_commands
 import logging
 import config
 
-from DutyStates.Views import PersistentFetchView
+from Functions.Views import PersistentFetchView
 from Functions.access_check import has_required_role
 
 logger = logging.getLogger(__name__)
@@ -33,10 +33,10 @@ class SendFetch(commands.Cog):
 
         channel = self.bot.get_channel(config.DSGRADE_CHANNEL_ID)
         embed = discord.Embed(
-            title="fetch a duty state!",
+            title="Fetch a duty state!",
             color=discord.Color.blue()
         )
-        view = PersistentFetchView(self.bot)
+        view = PersistentFetchView(self.bot, "Fetch a duty state", "ds:persistent_fetch")
         await channel.send(embed=embed, view=view)
         await interaction.response.send_message("fetch added.", ephemeral=True)
 
@@ -48,4 +48,4 @@ async def setup(bot: commands.Bot):
         bot: The bot.
     """
     await bot.add_cog(SendFetch(bot))
-    bot.add_view(PersistentFetchView(bot))
+    bot.add_view(PersistentFetchView(bot, "Fetch a Duty State", "ds:persistent_fetch"))
