@@ -108,6 +108,8 @@ APPROVE_EMOJI_NAME=approve_emoji_name
 DENY_EMOJI_NAME=deny_emoji_name
 DATA_CHANNEL_ID=data_channel_id
 DATA_LOG_CHANNEL_ID=data_log_channel_id
+AA_MESSAGE_ID=message_id_of_aa_logs_channel_pinned_message
+IN_MESSAEG_ID=message_id_of_in_logs_channel_pinned_message
 ```
 
 ### Running the Bot

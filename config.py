@@ -92,6 +92,10 @@ try:
     APPROVE_EMOJI_NAME = get_env_str('APPROVE_EMOJI_NAME')
     DENY_EMOJI_NAME = get_env_str('DENY_EMOJI_NAME')
 
+    #Messages
+    AA_MESSAGE_ID = get_env_int('AA_MESSAGE_ID')
+    IN_MESSAGE_ID = get_env_int('IN_MESSAGE_ID')
+
 except ConfigurationError as e:
     logger.critical(e)
     raise e
