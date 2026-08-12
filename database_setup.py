@@ -20,6 +20,12 @@ async def database_setup():
             PRIMARY KEY (message_id, user_id)
         ) 
         """)
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS fetches (
+            officer_id INTEGER NOT NULL PRIMARY KEY,
+            message_id INTEGER NOT NULL
+        )
+        """)
         conn.commit()
 
     with sqlite3.connect("data/leaderboard.db") as conn:

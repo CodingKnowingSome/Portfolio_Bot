@@ -119,7 +119,7 @@ async def keepup(client: discord.Client, lb: discord.Message):
         processed_officers.append((is_inactive, graded or 0, total or 0, user_name, has_in_role))
         processed_officers.sort(key=lambda x: (x[0], -x[1]))
         description = ""
-        for idx, (is_inactive, user_name, has_in_role) in enumerate(processed_officers, start=1):
+        for idx, (is_inactive, graded, total, user_name, has_in_role) in enumerate(processed_officers, start=1):
             if not has_in_role:
                 description += f"**{idx}.** - {user_name} - {graded} ({total})\n"
             else:

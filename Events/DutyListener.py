@@ -282,10 +282,9 @@ async def dutylistener(message: discord.Message):
             embed = discord.Embed(
                 title="Successful Submission",
                 description="You will receive a notification once an officer graded your duty state!",
-                color=discord.Color.green()
+                color=discord.Color.green(),
+                timestamp=datetime.now()
             )
-            currenttime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            embed.set_footer(text=f"Me | {currenttime}")
             message_id = message.id
             user_id = message.author.id
             with sqlite3.connect("data/duty_states.db") as conn:
@@ -302,7 +301,7 @@ async def dutylistener(message: discord.Message):
             description="Something went wrong checking your duty state's format. Please try again later.",
             color=discord.Color.yellow()
         )
-        embed.set_footer(text="We are really sorry for this. You may contact <&926037474805948416> about the error.")
+        embed.set_footer(text="We are really sorry for this. You may contact <@926037474805948416> about the error.")
         await message.reply(embed=embed, mention_author=True)
         await message.add_reaction("❌")
         return

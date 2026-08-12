@@ -49,7 +49,7 @@ class KosMake(commands.Cog):
         api_key = config.API_KEY
 
         headers = {
-            "Authorization": f"Bearer {API_KEY}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
         try:

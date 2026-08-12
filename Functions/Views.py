@@ -27,4 +27,4 @@ class PersistentFetchView(discord.ui.View):
             interaction: The interaction object from discord.Interaction.
             button: I don't know, it takes 3 arguments.
         """
-        await fetch(self.bot, interaction.user)
+        await fetch(self.bot, interaction.user, interaction)

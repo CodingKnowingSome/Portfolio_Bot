@@ -5,6 +5,7 @@ import discord
 from datetime import datetime
 import config
 import logging
+import sqlite3
 
 logger = logging.getLogger(__name__)
 
@@ -63,19 +64,17 @@ async def accept(client: discord.Client, message: discord.Message, img1: discord
     embed = discord.Embed(
         title="Accepted",
         description=f"{message.author.mention} your duty state has been accepted by {user.mention}. You have earned {points} point(s).",
-        color=discord.Color.green()
+        color=discord.Color.green(),
+        timestamp = datetime.now()
     )
-
-    currenttime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    embed.set_footer(text=f"{currenttime}")
     await message.reply(embed=embed)
     await message.clear_reactions()
     await message.add_reaction("✔️")
-    await fetch_msg.delete()
     try:
-        await img1.delete()
-        await img2.delete()
-        await img3.delete()
+        with sqlite3.connect("data/duty_states.db") as conn:
+            c = conn.cursor()
+            c.execute("DELETE FROM fetches WHERE message_id = ?", (message.id,))
+            conn.commit()
     except Exception as e:
         await gchannel.send("Could not delete the embed images!")
         print(f"Could not delete the embed images! {img1.id} | {img2.id} | {img3.id}", e)

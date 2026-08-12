@@ -14,7 +14,7 @@ from DutyStates.Accept import accept
 logger = logging.getLogger(__name__)
 
 
-async def fetch(client: discord.Client, user: discord.User):
+async def fetch(client: discord.Client, user: discord.User, interaction: discord.Interaction):
     """
     Fetches the oldest duty state, outputs the basic info, the three images with an accept and deny button.
     Args:
@@ -32,21 +32,33 @@ async def fetch(client: discord.Client, user: discord.User):
     channel = client.get_channel(ds_channel_id)
     if not channel:
         channel = await client.fetch_channel(ds_channel_id)
+    officer_id = interaction.user.id
     while True:
         try:
             with sqlite3.connect("data/duty_states.db") as conn:
                 c = conn.cursor()
-                c.execute("SELECT message_id FROM pending_duties ORDER BY message_id ASC LIMIT 1")
+                c.execute("SELECT message_id FROM fetches WHERE officer_id = ?", (officer_id,))
+                existing_claim = c.fetchone()
+            if existing_claim:
+                message_id = existing_claim[0]
+            else:
+                c.execute("""
+                SELECT message_id FROM pending_duties
+                WHERE message_id NOT IN (SELECT message_id FROM fetches)
+                ORDER BY message_id ASC LIMIT 1
+                """)
                 result = c.fetchone()
-            if not result:
-                nofetch = await gchannel.send("No duty state to fetch.")
-                await asyncio.sleep(60)
-                try:
-                    await nofetch.delete()
-                except discord.NotFound:
-                    pass
-                return
-            message_id = result[0]
+                if not result:
+                    nofetch = await interaction.followup.send("No duty state to fetch.", ephemeral=True)
+                    await asyncio.sleep(60)
+                    try:
+                        await nofetch.delete()
+                    except discord.NotFound:
+                        pass
+                    return
+                message_id = result[0]
+                c.execute("INSERT INTO fetches VALUES (?, ?)", (officer_id, message_id))
+                conn.commit()
             try:
                 message = await channel.fetch_message(message_id)
                 break
@@ -55,12 +67,13 @@ async def fetch(client: discord.Client, user: discord.User):
                 with sqlite3.connect("data/duty_states.db") as conn:
                     c = conn.cursor()
                     c.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
+                    c.execute("DELETE FROM fetches WHERE message_id = ?", (message_id,))
                     conn.commit()
-                await gchannel.send("Oldest duty state was deleted.", delete_after=60)
+                await interaction.followup.send("Oldest duty state was deleted.", delete_after=60, ephemeral=True)
                 return
         except Exception as e:
             logger.error(f"Something went wrong fetching a duty state, error: {e}.", exc_info=True)
-            errormessage = await gchannel.send("Something went wrong processing this duty state.")
+            errormessage = await interaction.followup.send("Something went wrong processing this duty state.", ephemeral=True)
             await asyncio.sleep(20)
             try:
                 await errormessage.delete()
@@ -89,7 +102,7 @@ async def fetch(client: discord.Client, user: discord.User):
         embed.add_field(name="Ended", value=lines[8][len("Tablist Ended: "):].strip())
         if len(lines) > 9:
             embed.add_field(name="Notes: ", value=f"{lines[10]}", inline=False)
-        view = View()
+        view = View(timeout=None)
         # noinspection PyTypeChecker
         accept_button = Button(
             label="Accept",
@@ -100,10 +113,6 @@ async def fetch(client: discord.Client, user: discord.User):
             label="Deny",
             style=discord.ButtonStyle.red
         )
-        fetch_msg = await gchannel.send(embed=embed)
-        img1 = await gchannel.send(f"{lines[2]}")
-        img2 = await gchannel.send(f"{lines[5][len('Tablist Started: '):].strip()}")
-        img3 = await gchannel.send(f"{lines[8][len('Tablist Ended: '):].strip()}")
 
         async def accept_callback(interaction: discord.Interaction):
             """
@@ -127,7 +136,11 @@ async def fetch(client: discord.Client, user: discord.User):
 
         deny_button.callback = deny_callback
         view.add_item(deny_button)
-        await fetch_msg.edit(view=view)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        fetch_msg = interaction.original_response()
+        img1 = await interaction.followup.send(f"{lines[2]}", ephemeral=True)
+        img2 = await interaction.followup.send(f"{lines[5][len('Tablist Started: '):].strip()}", ephemeral=True)
+        img3 = await interaction.followup.send(f"{lines[8][len('Tablist Ended: '):].strip()}", ephemeral=True)
         with sqlite3.connect("data/duty_states.db") as conn:
             c = conn.cursor()
             c.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
