@@ -18,12 +18,14 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
     """
     Fetches the oldest duty state, outputs the basic info, the three images with an accept and deny button.
     Args:
+        interaction: The interaction object from discord.Interaction
         client: The bot.
         user: The grading user as discord.User.
 
     Returns: NA
 
     """
+    await interaction.response.defer()
     dsgrade_channel_id = config.DSGRADE_CHANNEL_ID
     gchannel = client.get_channel(dsgrade_channel_id)
     if not gchannel:
@@ -73,7 +75,8 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
                 return
         except Exception as e:
             logger.error(f"Something went wrong fetching a duty state, error: {e}.", exc_info=True)
-            errormessage = await interaction.followup.send("Something went wrong processing this duty state.", ephemeral=True)
+            errormessage = await interaction.followup.send("Something went wrong processing this duty state.",
+                                                           ephemeral=True)
             await asyncio.sleep(20)
             try:
                 await errormessage.delete()
@@ -120,7 +123,7 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
             Args:
                 interaction: The interaction object from discord.Interaction.
             """
-            await accept(client, message, img1, img2, img3, interaction.user, fetch_msg, total_mins)
+            await accept(client, message, interaction.user, total_mins, interaction)
 
         accept_button.callback = accept_callback
         view.add_item(accept_button)
@@ -131,12 +134,12 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
             Args:
                 interaction: The interaction object from discord.Interaction.
             """
-            modal = DenyModal(client, message, img1, img2, img3, interaction.user, fetch_msg)
+            modal = DenyModal(client, message, interaction.user)
             await interaction.response.send_modal(modal)
 
         deny_button.callback = deny_callback
         view.add_item(deny_button)
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
         fetch_msg = interaction.original_response()
         img1 = await interaction.followup.send(f"{lines[2]}", ephemeral=True)
         img2 = await interaction.followup.send(f"{lines[5][len('Tablist Started: '):].strip()}", ephemeral=True)

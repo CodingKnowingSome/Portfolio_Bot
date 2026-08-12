@@ -107,7 +107,7 @@ async def keepup(client: discord.Client, lb: discord.Message):
                 user = await guild.fetch_member(user_id)
             except Exception as e:
                 user = None
-                logger.warning(f"Failed to fetch member: {e}")
+                logger.debug(f"Failed to fetch member: {e}")
         has_in_role = False
         if user:
             has_in_role = user.get_role(config.IN_ROLE_ID) is not None
