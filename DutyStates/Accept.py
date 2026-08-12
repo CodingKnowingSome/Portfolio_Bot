@@ -32,6 +32,10 @@ async def accept(client: discord.Client, message: discord.Message, user: discord
     if not row:
         await interaction.followup.send("This duty state was already graded.", ephemeral=True)
         return
+    with sqlite3.connect("data/duty_states.db") as conn:
+        c = conn.cursor()
+        c.execute("DELETE FROM fetches WHERE message_id = ?", (message.id,))
+        conn.commit()
 
     def points_check(time: int) -> int:
         """
@@ -72,8 +76,4 @@ async def accept(client: discord.Client, message: discord.Message, user: discord
     await message.reply(embed=embed)
     await message.clear_reactions()
     await message.add_reaction("✔️")
-    with sqlite3.connect("data/duty_states.db") as conn:
-        c = conn.cursor()
-        c.execute("DELETE FROM fetches WHERE message_id = ?", (message.id,))
-        conn.commit()
     await interaction.followup.send("Duty state accepted.", ephemeral=True)

@@ -31,6 +31,10 @@ async def deny(client: discord.Client, message: discord.Message, user: discord.U
     if not row:
         await interaction.followup.send("This duty state was already graded.", ephemeral=True)
         return
+    with sqlite3.connect("data/duty_states.db") as conn:
+        c = conn.cursor()
+        c.execute("DELETE FROM fetches WHERE message_id = ?", (message.id,))
+        conn.commit()
     embed = discord.Embed(
         title="Denied",
         description=f"{message.author.mention} your duty state has been denied by {user.mention}",
@@ -42,8 +46,4 @@ async def deny(client: discord.Client, message: discord.Message, user: discord.U
     await message.reply(embed=embed)
     await message.clear_reactions()
     await message.add_reaction("❌")
-    with sqlite3.connect("data/duty_states.db") as conn:
-        c = conn.cursor()
-        c.execute("DELETE FROM fetches WHERE message_id = ?", (message.id,))
-        conn.commit()
     await interaction.followup.send(f"Duty state denied. Reason: {reason}", ephemeral=True)
