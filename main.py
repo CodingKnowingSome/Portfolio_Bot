@@ -139,6 +139,10 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     Returns: NA
 
     """
+    if payload.message_id == 1531017376403951747:
+        return
+    if payload.message_id == 1528361953041317908:
+        return
     aa_logs_channel_id = config.AA_LOGS_CHANNEL_ID
     in_channel_id = config.IN_CHANNEL_ID
     if payload.channel_id == aa_logs_channel_id:
