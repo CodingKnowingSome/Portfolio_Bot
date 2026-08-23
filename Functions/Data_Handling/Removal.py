@@ -6,7 +6,7 @@ import logging
 import config
 from datetime import datetime
 from Functions.get_roblox_id import get_roblox_id
-import sqlite3
+import aiosqlite
 
 logger = logging.getLogger(__name__)
 
@@ -21,35 +21,31 @@ async def removal(bot: discord.Client, user: discord.User, username: str = None)
     """
     log_channel_id = config.DATA_LOG_CHANNEL_ID
     discord_id = user.id
-    roblox_id, exact_username = get_roblox_id(username)
+    roblox_id, exact_username = await get_roblox_id(username)
 
     if roblox_id:
-        with sqlite3.connect("data/kos_blacklist.db") as conn:
-            c = conn.cursor()
-            c.execute("SELECT * FROM kos WHERE user_id = ?", (roblox_id,))
-            kos_row = c.fetchone()
-            c.execute("SELECT * FROM blacklist WHERE user_id = ?", (roblox_id,))
-            blacklist = c.fetchone()
+        async with aiosqlite.connect("data/kos_blacklist.db") as conn:
+            async with conn.execute("SELECT * FROM kos WHERE user_id = ?", (roblox_id,)) as c:
+                kos_row = await c.fetchone()
+            async with conn.execute("SELECT * FROM blacklist WHERE user_id = ?", (roblox_id,)) as c:
+                blacklist = await c.fetchone()
     pending_duties_del = 0
-    with sqlite3.connect("data/duty_states.db") as conn:
-        c = conn.cursor()
-        c.execute("DELETE FROM pending_duties WHERE user_id = ?", (discord_id,))
-        pending_duties_del = c.rowcount
-        conn.commit()
+    async with aiosqlite.connect("data/duty_states.db") as conn:
+        async with c.execute("DELETE FROM pending_duties WHERE user_id = ?", (discord_id,)) as c:
+            pending_duties_del = c.rowcount
+        await conn.commit()
     leaderboard_del = 0
     aa_leaderboard_del = 0
-    with sqlite3.connect("data/leaderboard.db") as conn:
-        c = conn.cursor()
-        c.execute("DELETE FROM leaderboard WHERE user_id = ?", (discord_id,))
-        leaderboard_del = c.rowcount
-        c.execute("DELETE FROM aa_leaderboard WHERE user_id = ?", (discord_id,))
-        aa_leaderboard_del = c.rowcount
-        conn.commit()
-    with sqlite3.connect("data/ds_metadata.db") as conn:
-        c = conn.cursor()
-        c.execute("DELETE FROM ds_metadata WHERE user_id = ?", (discord_id,))
-        ds_metadata_del = c.rowcount
-        conn.commit()
+    async with aiosqlite.connect("data/leaderboard.db") as conn:
+        async with conn.execute("DELETE FROM leaderboard WHERE user_id = ?", (discord_id,)) as c:
+            leaderboard_del = c.rowcount
+        async with conn.execute("DELETE FROM aa_leaderboard WHERE user_id = ?", (discord_id,)) as c:
+            aa_leaderboard_del = c.rowcount
+        await conn.commit()
+    async with aiosqlite.connect("data/ds_metadata.db") as conn:
+        async with conn.execute("DELETE FROM ds_metadata WHERE user_id = ?", (discord_id,)) as c:
+            ds_metadata_del = c.rowcount
+        await conn.commit()
     user_embed = discord.Embed(
         title="Portfolio Bot Data Removal",
         color=discord.Color.red(),

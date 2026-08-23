@@ -4,7 +4,7 @@ Handles data requests.
 import discord
 import config
 from Functions.get_roblox_id import get_roblox_id
-import sqlite3
+import aiosqlite
 import logging
 from datetime import datetime
 
@@ -21,32 +21,25 @@ async def request(bot: discord.Client, user: discord.User, username: str):
     """
     log_channel_id = config.DATA_LOG_CHANNEL_ID
     discord_id = user.id
-    roblox_id, exact_username = get_roblox_id(username)
+    roblox_id, exact_username = await get_roblox_id(username)
 
     if roblox_id:
-        with sqlite3.connect("data/kos_blacklist.db") as conn:
-            c = conn.cursor()
-            c.execute("SELECT * FROM kos WHERE user_id = ?", (roblox_id,))
-            kos_row = c.fetchone()
-            c.execute("SELECT * FROM blacklist WHERE user_id = ?", (roblox_id,))
-            blacklist = c.fetchone()
-    with sqlite3.connect("data/duty_states.db") as conn:
-        c = conn.cursor()
-        c.execute("SELECT * FROM pending_duties WHERE user_id = ?", (discord_id,))
-        pending_duties = c.fetchall()
-        conn.commit()
-    with sqlite3.connect("data/leaderboard.db") as conn:
-        c = conn.cursor()
-        c.execute("SELECT * FROM leaderboard WHERE user_id = ?", (discord_id,))
-        leaderboard = c.fetchone()
-        c.execute("SELECT * FROM aa_leaderboard WHERE user_id = ?", (discord_id,))
-        aa_leaderboard = c.fetchone()
-        conn.commit()
-    with sqlite3.connect("data/ds_metadata.db") as conn:
-        c = conn.cursor()
-        c.execute("SELECT * FROM ds_metadata WHERE user_id = ?", (discord_id,))
-        ds_metadata = c.fetchone()
-        conn.commit()
+        async with aiosqlite.connect("data/kos_blacklist.db") as conn:
+            async with conn.execute("SELECT * FROM kos WHERE user_id = ?", (roblox_id,)) as c:
+                kos_row = await c.fetchone()
+            async with conn.execute("SELECT * FROM blacklist WHERE user_id = ?", (roblox_id,)) as c:
+                blacklist = await c.fetchone()
+    async with aiosqlite.connect("data/duty_states.db") as conn:
+        async with conn.execute("SELECT * FROM pending_duties WHERE user_id = ?", (discord_id,)) as c:
+            pending_duties = await c.fetchall()
+    async with aiosqlite.connect("data/leaderboard.db") as conn:
+        async with conn.execute("SELECT * FROM leaderboard WHERE user_id = ?", (discord_id,)) as c:
+            leaderboard = await c.fetchone()
+        async with conn.execute("SELECT * FROM aa_leaderboard WHERE user_id = ?", (discord_id,)) as c:
+            aa_leaderboard = await c.fetchone()
+    async with aiosqlite.connect("data/ds_metadata.db") as conn:
+        async with conn.execute("SELECT * FROM ds_metadata WHERE user_id = ?", (discord_id,)) as c:
+            ds_metadata = await c.fetchone()
     user_embed = discord.Embed(
         title="Portfolio Bot Stored Data",
         color=discord.Color.blue(),

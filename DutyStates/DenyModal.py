@@ -22,4 +22,4 @@ class DenyModal(Modal):
     async def on_submit(self, interaction: discord.Interaction):
         reason = self.reason.value
         #await interaction.response.send_message(f"Reason: {reason}", ephemeral=True)
-        await deny(self.client, self.message, self.user, reason, interaction)
+        await deny(self.message, self.user, reason, interaction)

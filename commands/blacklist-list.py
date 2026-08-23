@@ -39,7 +39,7 @@ class BlacklistList(commands.Cog):
                     if resp.status == 200 and data.get("success"):
                         count = data.get("count", 0)
                         items = data.get("blacklist", [])
-                        embed = await build_blacklist_embed(items, count, page=0)
+                        embed = build_blacklist_embed(items, count, page=0)
                         if count <= 10:
                             await interaction.followup.send(embed=embed)
                         else:
@@ -61,7 +61,7 @@ async def setup(bot: commands.Bot):
     await bot.add_cog(BlacklistList(bot))
 
 
-async def build_blacklist_embed(items: list, count: int, page: int, per_page: int = 10) -> discord.Embed:
+def build_blacklist_embed(items: list[dict], count: int, page: int, per_page: int = 10) -> discord.Embed:
     """
     Creates the embed with the blacklisted users.
     Args:
@@ -120,7 +120,7 @@ class Blacklistpager(discord.ui.View):
         return True
 
     # noinspection PyUnusedLocal
-    @discord.ui.button(label="**<** Previous")
+    @discord.ui.button(label="< Previous")
     async def prev_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         The previous button.
@@ -131,11 +131,11 @@ class Blacklistpager(discord.ui.View):
         if self.current_page > 0:
             self.current_page -= 1
             self.update_button_states()
-            embed = await build_blacklist_embed(self.items, self.count, self.current_page, self.per_page)
+            embed = build_blacklist_embed(self.items, self.count, self.current_page, self.per_page)
             await interaction.response.edit_message(embed=embed, view=self)
 
     # noinspection PyUnusedLocal
-    @discord.ui.button(label="Next **>**")
+    @discord.ui.button(label="Next >")
     async def next_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
         """
         The next button.
@@ -146,5 +146,5 @@ class Blacklistpager(discord.ui.View):
         if self.current_page < self.total_pages - 1:
             self.current_page += 1
             self.update_button_states()
-            embed = await build_blacklist_embed(self.items, self.count, self.current_page, self.per_page)
+            embed = build_blacklist_embed(self.items, self.count, self.current_page, self.per_page)
             await interaction.response.edit_message(embed=embed, view=self)

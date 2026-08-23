@@ -48,11 +48,7 @@ def get_env_str(key: str) -> str:
     value = os.getenv(key)
     if not value:
         raise ConfigurationError(f"Environment variable {key} not set.")
-    try:
-        return str(value)
-    except ValueError:
-        raise ConfigurationError(f'Environment variable "{key}" value {value} is not a valid string.')
-
+    return str(value)
 
 try:
     #TOKEN

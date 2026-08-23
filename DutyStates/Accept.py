@@ -4,18 +4,17 @@ Called when a duty state is accepted, handles the grading channel message deleti
 import discord
 from datetime import datetime
 import logging
-import sqlite3
+import aiosqlite
 
 logger = logging.getLogger(__name__)
 
 
-async def accept(client: discord.Client, message: discord.Message, user: discord.User, total_mins: int,
+async def accept(message: discord.Message, user: discord.User, total_mins: int,
                  interaction: discord.Interaction):
     """
     Calls points_check to check for the given points, creates and sends the embed, deletes the info message and
     images in the grading channel.
     Args:
-        client: The bot.
         message: The duty state message as discord.Message.
         user: The user grading the duty state as discord.User.
         total_mins: The total time of the duty states as int.
@@ -25,17 +24,15 @@ async def accept(client: discord.Client, message: discord.Message, user: discord
 
     """
     await interaction.response.defer()
-    with sqlite3.connect("data/duty_states.db") as conn:
-        c = conn.cursor()
-        c.execute("SELECT message_id FROM fetches WHERE message_id = ?", (message.id,))
-        row = c.fetchone()
+    async with aiosqlite.connect("data/duty_states.db") as conn:
+        async with conn.execute("SELECT message_id FROM fetches WHERE message_id = ?", (message.id,)) as c:
+            row = await c.fetchone()
     if not row:
         await interaction.followup.send("This duty state was already graded.", ephemeral=True)
         return
-    with sqlite3.connect("data/duty_states.db") as conn:
-        c = conn.cursor()
-        c.execute("DELETE FROM fetches WHERE message_id = ?", (message.id,))
-        conn.commit()
+    async with aiosqlite.connect("data/duty_states.db") as conn:
+        await conn.execute("DELETE FROM fetches WHERE message_id = ?", (message.id,))
+        await conn.commit()
 
     def points_check(time: int) -> int:
         """

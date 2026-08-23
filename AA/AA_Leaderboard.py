@@ -4,9 +4,10 @@ Creates, updates, and upkeep's the leaderboard.
 import asyncio
 import datetime
 import discord
-import sqlite3
+import aiosqlite
 import logging
 import config
+from Functions.cache_members import get_member
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +32,9 @@ async def aaleaderboard(client: discord.Client):
         except Exception as e:
             logger.error(f"Failed to fetch leaderboard channel: {e}")
             return
-    conn = sqlite3.connect("data/leaderboard.db")
-    c = conn.cursor()
-    c.execute("SELECT value FROM aa_leaderboard_meta WHERE key = 'message_id'")
-    row = c.fetchone()
-    conn.close()
+    async with aiosqlite.connect("data/leaderboard.db") as conn:
+        async with conn.execute("SELECT value FROM aa_leaderboard_meta WHERE key = 'message_id'") as c:
+            row = await c.fetchone()
 
     lb = None
 
@@ -53,14 +52,12 @@ async def aaleaderboard(client: discord.Client):
         embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
         lb = await channel.send(embed=embed)
 
-        conn = sqlite3.connect("data/leaderboard.db")
-        c = conn.cursor()
-        c.execute("""
-            INSERT OR REPLACE INTO aa_leaderboard_meta (key, value) 
-            VALUES ('message_id', ?)
-        """, (lb.id,))
-        conn.commit()
-        conn.close()
+        async with aiosqlite.connect("data/leaderboard.db") as conn:
+            await conn.execute("""
+                INSERT OR REPLACE INTO aa_leaderboard_meta (key, value) 
+                VALUES ('message_id', ?)
+            """, (lb.id,))
+            await conn.commit()
     await keepup(client, lb)
     while True:
         await asyncio.sleep(60)
@@ -94,20 +91,12 @@ async def keepup(client: discord.Client, lb: discord.Message):
         except Exception as e:
             logger.error(f"Could not fetch guild: {e}.")
             return
-    conn = sqlite3.connect("data/leaderboard.db")
-    c = conn.cursor()
-    c.execute("SELECT * FROM aa_leaderboard")
-    all_staff = c.fetchall()
-    conn.close()
+    async with aiosqlite.connect("data/leaderboard.db") as conn:
+        async with conn.execute("SELECT * FROM aa_leaderboard") as c:
+            all_staff = await c.fetchall()
     processed_staff = []
     for user_id, lessons, total in all_staff:
-        user = guild.get_member(user_id)
-        if not user:
-            try:
-                user = await guild.fetch_member(user_id)
-            except Exception as e:
-                user = None
-                logger.debug(f"Failed to fetch member {user_id}: {e}")
+        user = await get_member(guild, user_id)
         has_in_role = False
         if user:
             has_in_role = user.get_role(config.IN_ROLE_ID) is not None

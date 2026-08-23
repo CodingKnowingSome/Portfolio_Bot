@@ -3,19 +3,17 @@ Called when a duty state is denied, handles the grading channel message deletion
 """
 import discord
 from datetime import datetime
-import config
 import logging
-import sqlite3
+import aiosqlite
 
 logger = logging.getLogger(__name__)
 
 
-async def deny(client: discord.Client, message: discord.Message, user: discord.User, reason: str, interaction: discord.Interaction):
+async def deny(message: discord.Message, user: discord.User, reason: str, interaction: discord.Interaction):
     """
     Deletes the images and info message in the grading channel, notifies the user with an embed.
     Args:
         reason: The reason for the denial as a str.
-        client: The bot.
         message: The duty state message as discord.Message.
         user: The user grading the duty state as discord.User.
         interaction: The interaction object from discord.Interaction.
@@ -24,17 +22,15 @@ async def deny(client: discord.Client, message: discord.Message, user: discord.U
 
     """
     await interaction.response.defer()
-    with sqlite3.connect("data/duty_states.db") as conn:
-        c = conn.cursor()
-        c.execute("SELECT message_id FROM fetches WHERE message_id = ?", (message.id,))
-        row = c.fetchone()
+    async with aiosqlite.connect("data/duty_states.db") as conn:
+        async with conn.execute("SELECT message_id FROM fetches WHERE message_id = ?", (message.id,)) as c:
+            row = await c.fetchone()
     if not row:
         await interaction.followup.send("This duty state was already graded.", ephemeral=True)
         return
-    with sqlite3.connect("data/duty_states.db") as conn:
-        c = conn.cursor()
-        c.execute("DELETE FROM fetches WHERE message_id = ?", (message.id,))
-        conn.commit()
+    async with aiosqlite.connect("data/duty_states.db") as conn:
+        await conn.execute("DELETE FROM fetches WHERE message_id = ?", (message.id,))
+        await conn.commit()
     embed = discord.Embed(
         title="Denied",
         description=f"{message.author.mention} your duty state has been denied by {user.mention}",

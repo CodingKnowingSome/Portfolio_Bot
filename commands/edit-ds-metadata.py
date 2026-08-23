@@ -1,6 +1,6 @@
 import discord
 import logging
-import sqlite3
+import aiosqlite
 from discord import app_commands
 from discord.ext import commands
 
@@ -23,27 +23,21 @@ class EditDSMetadata(commands.Cog):
             timezone: The new timezone to include in the metadata as str.
         """
         if username:
-            with sqlite3.connect("data/ds_metadata.db") as conn:
-                c = conn.cursor()
-                c.execute("SELECT * FROM ds_metadata WHERE user_id = ?", (interaction.user.id,))
-                metadata = c.fetchone()
-                conn.commit()
+            async with aiosqlite.connect("data/ds_metadata.db") as conn:
+                async with conn.execute("SELECT * FROM ds_metadata WHERE user_id = ?", (interaction.user.id,)) as c:
+                    metadata = await c.fetchone()
             if metadata:
-                with sqlite3.connect("data/ds_metadata.db") as conn:
-                    c = conn.cursor()
-                    c.execute("UPDATE ds_metadata SET username = ? WHERE user_id = ?", (username, interaction.user.id))
-                    conn.commit()
+                async with aiosqlite.connect("data/ds_metadata.db") as conn:
+                    await conn.execute("UPDATE ds_metadata SET username = ? WHERE user_id = ?", (username, interaction.user.id))
+                    await conn.commit()
         if timezone:
-            with sqlite3.connect("data/ds_metadata.db") as conn:
-                c = conn.cursor()
-                c.execute("SELECT * FROM ds_metadata WHERE user_id = ?", (interaction.user.id,))
-                metadata = c.fetchone()
-                conn.commit()
+            with aiosqlite.connect("data/ds_metadata.db") as conn:
+                async with conn.execute("SELECT * FROM ds_metadata WHERE user_id = ?", (interaction.user.id,)) as c:
+                    metadata = await c.fetchone()
             if metadata:
-                with sqlite3.connect("data/ds_metadata.db") as conn:
-                    c = conn.cursor()
-                    c.execute("UPDATE ds_metadata SET timezone = ? WHERE user_id = ?", (timezone, interaction.user.id))
-                    conn.commit()
+                async with aiosqlite.connect("data/ds_metadata.db") as conn:
+                    await conn.execute("UPDATE ds_metadata SET timezone = ? WHERE user_id = ?", (timezone, interaction.user.id))
+                    await conn.commit()
         if not username and not timezone:
             await interaction.response.send_message("Nothing to edit.", ephemeral=True)
         else:

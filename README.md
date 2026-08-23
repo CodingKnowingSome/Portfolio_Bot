@@ -5,7 +5,7 @@ A Discord bot created by *KapitanyDrake* for showcase purposes.
 - Python 3.14 (developed and tested)
 - `discord.py`
 - Flask
-- SQLite3
+- aiosqlite and sqlite3
 
 Features the duty state workflow, KoS checker, blacklists, AA student promotion notifications and other misc. features.
 

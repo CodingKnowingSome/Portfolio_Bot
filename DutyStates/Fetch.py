@@ -3,7 +3,7 @@ Fetches the oldest duty state.
 """
 import asyncio
 import logging
-import sqlite3
+import aiosqlite
 from datetime import datetime
 import discord
 from discord.ui import Button, View
@@ -37,19 +37,18 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
     officer_id = interaction.user.id
     while True:
         try:
-            with sqlite3.connect("data/duty_states.db") as conn:
-                c = conn.cursor()
-                c.execute("SELECT message_id FROM fetches WHERE officer_id = ?", (officer_id,))
-                existing_claim = c.fetchone()
+            async with aiosqlite.connect("data/duty_states.db") as conn:
+                async with conn.execute("SELECT message_id FROM fetches WHERE officer_id = ?", (officer_id,)) as c:
+                    existing_claim = await c.fetchone()
             if existing_claim:
                 message_id = existing_claim[0]
             else:
-                c.execute("""
+                async with conn.execute("""
                 SELECT message_id FROM pending_duties
                 WHERE message_id NOT IN (SELECT message_id FROM fetches)
                 ORDER BY message_id ASC LIMIT 1
-                """)
-                result = c.fetchone()
+                """) as c:
+                    result = await c.fetchone()
                 if not result:
                     nofetch = await interaction.followup.send("No duty state to fetch.", ephemeral=True)
                     await asyncio.sleep(60)
@@ -59,18 +58,17 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
                         pass
                     return
                 message_id = result[0]
-                c.execute("INSERT INTO fetches VALUES (?, ?)", (officer_id, message_id))
-                conn.commit()
+                await conn.execute("INSERT INTO fetches VALUES (?, ?)", (officer_id, message_id))
+                await conn.commit()
             try:
                 message = await channel.fetch_message(message_id)
                 break
             except discord.NotFound:
                 logger.debug(f"Pending DS {message_id} not found.")
-                with sqlite3.connect("data/duty_states.db") as conn:
-                    c = conn.cursor()
-                    c.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
-                    c.execute("DELETE FROM fetches WHERE message_id = ?", (message_id,))
-                    conn.commit()
+                async with aiosqlite.connect("data/duty_states.db") as conn:
+                    await conn.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
+                    await conn.execute("DELETE FROM fetches WHERE message_id = ?", (message_id,))
+                    await conn.commit()
                 await interaction.followup.send("Oldest duty state was deleted.", delete_after=60, ephemeral=True)
                 return
         except Exception as e:
@@ -117,51 +115,49 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
             style=discord.ButtonStyle.red
         )
 
-        async def accept_callback(interaction: discord.Interaction):
+        async def accept_callback(interaction_: discord.Interaction):
             """
             Accept button callback, calls the accept function to handle the acceptance.
             Args:
-                interaction: The interaction object from discord.Interaction.
+                interaction_: The interaction object from discord.Interaction.
             """
-            await accept(client, message, interaction.user, total_mins, interaction)
+            await accept(message, interaction_.user, total_mins, interaction_)
 
         accept_button.callback = accept_callback
         view.add_item(accept_button)
 
-        async def deny_callback(interaction: discord.Interaction):
+        async def deny_callback(interaction_: discord.Interaction):
             """
             Deny button callback, calls the deny function to handle the denial.
             Args:
-                interaction: The interaction object from discord.Interaction.
+                interaction_: The interaction object from discord.Interaction.
             """
-            modal = DenyModal(client, message, interaction.user)
-            await interaction.response.send_modal(modal)
+            modal = DenyModal(client, message, interaction_.user)
+            await interaction_.response.send_modal(modal)
 
         deny_button.callback = deny_callback
         view.add_item(deny_button)
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
-        fetch_msg = interaction.original_response()
-        img1 = await interaction.followup.send(f"{lines[2]}", ephemeral=True)
-        img2 = await interaction.followup.send(f"{lines[5][len('Tablist Started: '):].strip()}", ephemeral=True)
-        img3 = await interaction.followup.send(f"{lines[8][len('Tablist Ended: '):].strip()}", ephemeral=True)
-        with sqlite3.connect("data/duty_states.db") as conn:
-            c = conn.cursor()
-            c.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
-            conn.commit()
-        with sqlite3.connect("data/leaderboard.db") as conn:
-            c = conn.cursor()
-            c.execute("SELECT graded, total FROM leaderboard WHERE user_id = ?", (user.id,))
-            result = c.fetchone()
+        await interaction.original_response()
+        await interaction.followup.send(f"{lines[2]}", ephemeral=True)
+        await interaction.followup.send(f"{lines[5][len('Tablist Started: '):].strip()}", ephemeral=True)
+        await interaction.followup.send(f"{lines[8][len('Tablist Ended: '):].strip()}", ephemeral=True)
+        async with aiosqlite.connect("data/duty_states.db") as conn:
+            await conn.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
+            await conn.commit()
+        async with aiosqlite.connect("data/leaderboard.db") as conn:
+            async with conn.execute("SELECT graded, total FROM leaderboard WHERE user_id = ?", (user.id,)) as c:
+                result = await c.fetchone()
             if result:
                 graded = result[0]
                 graded += 1
                 total = result[1]
                 total += 1
-                c.execute("UPDATE leaderboard SET graded = ? WHERE user_id = ?", (graded, user.id))
-                c.execute("UPDATE leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
+                await c.execute("UPDATE leaderboard SET graded = ? WHERE user_id = ?", (graded, user.id))
+                await c.execute("UPDATE leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
             else:
-                c.execute("INSERT INTO leaderboard (user_id, graded, total) VALUES (?, ?, ?)", (user.id, 1, 1))
-            conn.commit()
+                await c.execute("INSERT INTO leaderboard (user_id, graded, total) VALUES (?, ?, ?)", (user.id, 1, 1))
+            await conn.commit()
 
     except Exception as e:
         await gchannel.send("Something went wrong.")

@@ -3,8 +3,9 @@ Called when an AA log is accepted, edits the database by adding the lessons for 
 """
 import discord
 import logging
-import sqlite3
+import aiosqlite
 from Functions.get_user_by_name import find_member_by_name
+from AA.promotion_parser import parse_promotion_log
 
 logger = logging.getLogger(__name__)
 
@@ -18,17 +19,11 @@ async def aa_leaderboard_edit(message: discord.Message, guild: discord.Guild):
     """
     try:
 
-        lines = message.content.splitlines()
-        line_12 = lines[12]
-        start_index = line_12.index("username:") + len("username:")
-        end_index = line_12.index("action:")
+        names = parse_promotion_log(message.content)
 
-        names = line_12[start_index:end_index].strip()
-
-        if names.strip():
-            names_list = names.split(" ")
+        if names:
             found_user = []
-            for name in names_list:
+            for name in names.lessons:
                 member = find_member_by_name(guild, name)
 
                 if member:
@@ -39,22 +34,21 @@ async def aa_leaderboard_edit(message: discord.Message, guild: discord.Guild):
             found_user = []
 
         if found_user:
-            with sqlite3.connect("data/leaderboard.db") as conn:
+            async with aiosqlite.connect("data/leaderboard.db") as conn:
                 for user in found_user:
-                    c = conn.cursor()
-                    c.execute("SELECT lessons, total FROM aa_leaderboard WHERE user_id = ?", (user.id,))
-                    result = c.fetchone()
+                    async with conn.execute("SELECT lessons, total FROM aa_leaderboard WHERE user_id = ?", (user.id,)) as c:
+                        result = await c.fetchone()
                     if result:
                         lessons = result[0]
                         lessons += 1
                         total = result[1]
                         total += 1
-                        c.execute("UPDATE aa_leaderboard SET lessons = ? WHERE user_id = ?", (lessons, user.id))
-                        c.execute("UPDATE aa_leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
+                        await conn.execute("UPDATE aa_leaderboard SET lessons = ? WHERE user_id = ?", (lessons, user.id))
+                        await conn.execute("UPDATE aa_leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
                     else:
-                        c.execute("INSERT INTO aa_leaderboard (user_id, lessons, total) VALUES (?, ?, ?)",
+                        await conn.execute("INSERT INTO aa_leaderboard (user_id, lessons, total) VALUES (?, ?, ?)",
                                   (user.id, 1, 1))
-                    conn.commit()
+                    await conn.commit()
         else:
             pass
     except Exception as e:

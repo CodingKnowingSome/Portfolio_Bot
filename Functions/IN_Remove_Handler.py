@@ -2,7 +2,6 @@
 Handles IN removals by removing the role from the user.
 """
 import discord
-from Functions.access_check import has_required_role_member
 import config
 
 

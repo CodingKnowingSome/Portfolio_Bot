@@ -4,6 +4,8 @@ The main file, responsible for starting the bot, and calling other functions.
 import discord
 from discord.ext import commands
 import os
+import sys
+import subprocess
 import logging
 import database_setup
 import asyncio
@@ -105,6 +107,14 @@ async def on_ready():
 
 
 if __name__ == "__main__":
+    print("---Startup Tests---")
+    test_result = subprocess.run(["pytest", "-v"])
+    if test_result.returncode != 0:
+        print("\nPytests failed, stopping bot startup.")
+        logger.error("Pytests failed, stopping bot startup.")
+        sys.exit(1)
+    print("\nAll pytests passed, continue.")
+    logger.info('All pytests passed.')
     api_thread = threading.Thread(target=run_api, daemon=True)
     api_thread.start()
     print("APIs started.")

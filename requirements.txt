@@ -2,4 +2,7 @@ discord.py
 Flask
 python-dotenv
 requests
-cryptography
+aiosqlite
+aiohttp
+pytest
+pytest-asyncio

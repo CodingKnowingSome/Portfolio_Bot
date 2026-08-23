@@ -4,7 +4,7 @@ Checks the number of pending duty states of a user.
 from discord.ext import commands
 from discord import app_commands
 import discord
-import sqlite3
+import aiosqlite
 import logging
 from Functions.access_check import has_required_role
 import config
@@ -29,10 +29,9 @@ class Pending(commands.Cog):
         guest_role_id = config.GUEST_ROLE_ID
         if not await has_required_role(interaction, guest_role_id):
             return
-        with sqlite3.connect("data/duty_states.db") as conn:
-            c = conn.cursor()
-            c.execute("SELECT * FROM pending_duties WHERE user_id = ?", (interaction.user.id,))
-            results = c.fetchall()
+        async with aiosqlite.connect("data/duty_states.db") as conn:
+            async with conn.execute("SELECT * FROM pending_duties WHERE user_id = ?", (interaction.user.id,)) as c:
+                results = await c.fetchall()
         if len(results) > 0:
             await interaction.response.send_message(
                 f"{interaction.user.mention}, you have {len(results)} duty state(s) pending.", ephemeral=True)

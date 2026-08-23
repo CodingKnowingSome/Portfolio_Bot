@@ -5,7 +5,7 @@ from functools import wraps
 
 from flask import Flask, request, jsonify
 import sqlite3
-from Functions.get_roblox_id import get_roblox_id
+from Functions.get_roblox_id import get_roblox_id_sync
 from datetime import datetime
 import logging
 import requests
@@ -89,7 +89,7 @@ def set_kos():
     status = data.get('status')
     if not username or status is None:
         return jsonify({"success": False, "error": "Missing input"}), 400
-    user_id, exact_username = get_roblox_id(username)
+    user_id, exact_username = get_roblox_id_sync(username)
     if not user_id:
         return jsonify({"success": False, "error": "User not found"}), 404
     with sqlite3.connect(db_path) as conn:
@@ -119,7 +119,7 @@ def koscheck(username):
     Returns: Packet with their KoS status.
 
     """
-    user_id, exact_username = get_roblox_id(username)
+    user_id, exact_username = get_roblox_id_sync(username)
     if not user_id:
         return jsonify({"success": False, "error": "User not found"}), 404
     with sqlite3.connect(db_path) as conn:
@@ -158,7 +158,7 @@ def set_blacklist():
     reason = data.get('reason', "No reason provided")
     added_by = data.get('added_by', "Unknown")
     last_edit = int(datetime.now().timestamp())
-    user_id, exact_username = get_roblox_id(username)
+    user_id, exact_username = get_roblox_id_sync(username)
     if not user_id:
         return jsonify({"success": False, "error": "User not found"}), 404
     with sqlite3.connect(db_path) as conn:
@@ -203,18 +203,32 @@ def get_blacklist():
         rows = c.fetchall()
     if not rows: return jsonify({"success": True, "count": 0, "blacklist": []})
     user_ids = list({row[0] for row in rows})
+
+    def chunks(items: list[int], size: int):
+        for i in range(0, len(items), size):
+            yield items[i:i + size]
+
     username_map = {}
-    try:
-        roblox_resp = requests.post(
-            "https://users.roblox.com/v1/users",
-            json={"userIds": user_ids[:100], "excludeBannedUsers": False},
-            timeout=5
-        )
-        if roblox_resp.status_code == 200:
-            user_data = roblox_resp.json().get("data", [])
-            username_map = {user["id"]: user["name"] for user in user_data}
-    except Exception as e:
-        logger.warning(f"Failed to get user data: {e}")
+    for batch in chunks(user_ids, 100):
+        try:
+            response = requests.post(
+                "https://users.roblox.com/v1/users",
+                json={
+                    "userIds": batch,
+                    "excludeBannedUsers": False,
+                },
+                timeout=5,
+            )
+            if response.status_code != 200:
+                continue
+            data = response.json().get("data", [])
+            username_map.update(
+                {
+                    user['id']: user["name"] for user in data
+                }
+            )
+        except requests.RequestException as e:
+            logger.error(f"Failed to fetch Roblox users: {e}")
     blacklist = [
         {
             "user_id": r[0],
@@ -243,7 +257,7 @@ def is_blacklist(username):
     Returns: A packet containing their status, or a failure packet.
 
     """
-    user_id, exact_username = get_roblox_id(username)
+    user_id, exact_username = get_roblox_id_sync(username)
     if not user_id:
         return jsonify({"success": False, "error": "User not found"}), 404
     with sqlite3.connect(db_path) as conn:
@@ -252,7 +266,6 @@ def is_blacklist(username):
             SELECT * FROM blacklist WHERE user_id = ?
         """, (user_id,))
         row = c.fetchone()
-        conn.commit()
     if row:
         blacklist = [
             {

@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import logging
-import sqlite3
+import aiosqlite
 from discord.ui import Modal, TextInput
 from Functions.access_check import has_required_role
 import config
@@ -44,10 +44,9 @@ class DSMake(commands.Cog):
         guest_role_id = config.GUEST_ROLE_ID
         if not await has_required_role(interaction, guest_role_id):
             return
-        with sqlite3.connect("data/ds_metadata.db") as conn:
-            c = conn.cursor()
-            c.execute('''SELECT * FROM ds_metadata WHERE user_id = ?''', (interaction.user.id,))
-            results = c.fetchone()
+        async with aiosqlite.connect("data/ds_metadata.db") as conn:
+            async with conn.execute('''SELECT * FROM ds_metadata WHERE user_id = ?''', (interaction.user.id,)) as c:
+                results = await c.fetchone()
         if not results:
             modal = GetMetadata()
             await interaction.response.send_modal(modal)
@@ -73,10 +72,9 @@ class GetMetadata(Modal):
             user_id = interaction.user.id
             username = data_split[0]
             timezone = data_split[1]
-            with sqlite3.connect("data/ds_metadata.db") as conn:
-                c = conn.cursor()
-                c.execute("""INSERT INTO ds_metadata VALUES (?,?,?)""", (user_id, username, timezone))
-                conn.commit()
+            async with aiosqlite.connect("data/ds_metadata.db") as conn:
+                await conn.execute("""INSERT INTO ds_metadata VALUES (?,?,?)""", (user_id, username, timezone))
+                await conn.commit()
             await interaction.response.send_message(
                 f"{username}'s data has been added - you can create duty states now.", ephemeral=True)
 

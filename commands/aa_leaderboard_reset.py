@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import logging
-import sqlite3
+import aiosqlite
 from datetime import datetime
 from Functions.access_check import has_required_role
 import config
@@ -31,10 +31,9 @@ class AALeaderboardReset(commands.Cog):
         officer_role_id = config.OFFICER_ROLE_ID
         if not await has_required_role(interaction, officer_role_id):
             return
-        with sqlite3.connect("data/leaderboard.db") as conn:
-            c = conn.cursor()
-            c.execute("SELECT * FROM aa_leaderboard")
-            all_staff = c.fetchall()
+        async with aiosqlite.connect("data/leaderboard.db") as conn:
+            async with conn.execute("SELECT * FROM aa_leaderboard") as c:
+                all_staff = await c.fetchall()
         processed_staff = []
         guild = self.bot.get_guild(config.TEST_GUILD_ID)
         if not guild:
@@ -87,10 +86,9 @@ class AALeaderboardReset(commands.Cog):
                 await interaction.response.send_message("Archive channel not found.", ephemeral=True)
                 return
         await archive_channel.send(embed=embed)
-        with sqlite3.connect("data/leaderboard.db") as conn:
-            c = conn.cursor()
-            c.execute("UPDATE aa_leaderboard SET lessons = 0")
-            conn.commit()
+        async with aiosqlite.connect("data/leaderboard.db") as conn:
+            await conn.execute("UPDATE aa_leaderboard SET lessons = 0")
+            await conn.commit()
         await interaction.followup.send("Leaderboard archived and reset.", ephemeral=True)
 
 
