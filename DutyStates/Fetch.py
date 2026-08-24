@@ -69,13 +69,7 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
                         await conn.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
                         await conn.execute("DELETE FROM fetches WHERE message_id = ?", (message_id,))
                         await conn.commit()
-                    deleted = await interaction.followup.send("Oldest duty state was deleted.", ephemeral=True)
-                    await asyncio.sleep(60)
-                    try:
-                        await deleted.delete()
-                    except discord.NotFound:
-                        pass
-                    return
+                    continue
         except Exception as e:
             logger.error(f"Something went wrong fetching a duty state, error: {e}.", exc_info=True)
             errormessage = await interaction.followup.send("Something went wrong processing this duty state.",
