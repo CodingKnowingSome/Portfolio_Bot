@@ -40,37 +40,37 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
             async with aiosqlite.connect("data/duty_states.db") as conn:
                 async with conn.execute("SELECT message_id FROM fetches WHERE officer_id = ?", (officer_id,)) as c:
                     existing_claim = await c.fetchone()
-            if existing_claim:
-                message_id = existing_claim[0]
-            else:
-                async with conn.execute("""
-                SELECT message_id FROM pending_duties
-                WHERE message_id NOT IN (SELECT message_id FROM fetches)
-                ORDER BY message_id ASC LIMIT 1
-                """) as c:
-                    result = await c.fetchone()
-                if not result:
-                    nofetch = await interaction.followup.send("No duty state to fetch.", ephemeral=True)
-                    await asyncio.sleep(60)
-                    try:
-                        await nofetch.delete()
-                    except discord.NotFound:
-                        pass
-                    return
-                message_id = result[0]
-                await conn.execute("INSERT INTO fetches VALUES (?, ?)", (officer_id, message_id))
-                await conn.commit()
-            try:
-                message = await channel.fetch_message(message_id)
-                break
-            except discord.NotFound:
-                logger.debug(f"Pending DS {message_id} not found.")
-                async with aiosqlite.connect("data/duty_states.db") as conn:
-                    await conn.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
-                    await conn.execute("DELETE FROM fetches WHERE message_id = ?", (message_id,))
+                if existing_claim:
+                    message_id = existing_claim[0]
+                else:
+                    async with conn.execute("""
+                    SELECT message_id FROM pending_duties
+                    WHERE message_id NOT IN (SELECT message_id FROM fetches)
+                    ORDER BY message_id ASC LIMIT 1
+                    """) as c:
+                        result = await c.fetchone()
+                    if not result:
+                        nofetch = await interaction.followup.send("No duty state to fetch.", ephemeral=True)
+                        await asyncio.sleep(60)
+                        try:
+                            await nofetch.delete()
+                        except discord.NotFound:
+                            pass
+                        return
+                    message_id = result[0]
+                    await conn.execute("INSERT INTO fetches VALUES (?, ?)", (officer_id, message_id))
                     await conn.commit()
-                await interaction.followup.send("Oldest duty state was deleted.", delete_after=60, ephemeral=True)
-                return
+                try:
+                    message = await channel.fetch_message(message_id)
+                    break
+                except discord.NotFound:
+                    logger.debug(f"Pending DS {message_id} not found.")
+                    async with aiosqlite.connect("data/duty_states.db") as conn:
+                        await conn.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
+                        await conn.execute("DELETE FROM fetches WHERE message_id = ?", (message_id,))
+                        await conn.commit()
+                    await interaction.followup.send("Oldest duty state was deleted.", delete_after=60, ephemeral=True)
+                    return
         except Exception as e:
             logger.error(f"Something went wrong fetching a duty state, error: {e}.", exc_info=True)
             errormessage = await interaction.followup.send("Something went wrong processing this duty state.",
@@ -153,10 +153,10 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
                 graded += 1
                 total = result[1]
                 total += 1
-                await c.execute("UPDATE leaderboard SET graded = ? WHERE user_id = ?", (graded, user.id))
-                await c.execute("UPDATE leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
+                await conn.execute("UPDATE leaderboard SET graded = ? WHERE user_id = ?", (graded, user.id))
+                await conn.execute("UPDATE leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
             else:
-                await c.execute("INSERT INTO leaderboard (user_id, graded, total) VALUES (?, ?, ?)", (user.id, 1, 1))
+                await conn.execute("INSERT INTO leaderboard (user_id, graded, total) VALUES (?, ?, ?)", (user.id, 1, 1))
             await conn.commit()
 
     except Exception as e:
