@@ -30,14 +30,52 @@ class SendFetch(commands.Cog):
         admin_role_id = config.ADMIN_ROLE_ID
         if not await has_required_role(interaction, admin_role_id):
             return
-
         channel = self.bot.get_channel(config.DSGRADE_CHANNEL_ID)
-        embed = discord.Embed(
-            title="Fetch a duty state!",
-            color=discord.Color.blue()
-        )
-        view = PersistentFetchView(self.bot, "Fetch a duty state", "ds:persistent_fetch")
-        await channel.send(embed=embed, view=view)
+        if not channel:
+            channel = await self.bot.fetch_channel(config.DSGRADE_CHANNEL_ID)
+        officer_id = config.OFFICER_ROLE_ID
+        officer_role = discord.utils.get(interaction.guild.roles, id=officer_id)
+        if not officer_role:
+            try:
+                officer_role = await interaction.guild.fetch_role(officer_id)
+            except discord.NotFound:
+                logger.warning("Could not find officer role.")
+                await interaction.response.send_message("Could not find officer role.", ephemeral=True)
+                return
+        payload = {
+            "flags": 32768,
+            "allowed_mentions": {"roles": [str(officer_role.id)]},
+            "components": [
+                {
+                    "type": 17,
+                    "accent_color": 0x3498DB,
+                    "components": [
+                        {
+                            "type": 10,
+                            "content": (
+                                f"{officer_role.mention}\n\n"
+                                f"# Fetch a duty state!\n"
+                                f"Press the below button to fetch a duty state! "
+                                f"You can fetch again and get the same if needed."
+                            )
+                        },
+                        {
+                            "type": 1,
+                            "components": [
+                                {
+                                    "type": 2,
+                                    "style": 1,
+                                    "label": "Fetch a duty state!",
+                                    "custom_id": "ds:persistent_fetch"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+        route = discord.http.Route('POST', '/channels/{channel_id}/messages', channel_id=channel.id)
+        await self.bot.http.request(route, json=payload)
         await interaction.response.send_message("fetch added.", ephemeral=True)
 
 
