@@ -173,7 +173,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
                     message = await channel.fetch_message(payload.message_id)
                 except discord.NotFound:
                     return
-                await in_handler(message, guild)
+                await in_handler(client, message, guild)
             else:
                 return
         elif payload.emoji.name == config.DENY_EMOJI_NAME:
@@ -188,7 +188,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
                     message = await channel.fetch_message(payload.message_id)
                 except discord.NotFound:
                     return
-                await in_deny_handler(message, guild)
+                await in_deny_handler(client, message, guild)
             else:
                 return
     else:
@@ -203,7 +203,7 @@ async def on_message_delete(message: discord.Message):
         message: The message as discord.Message.
     """
     if message.channel.id == config.IN_CHANNEL_ID:
-        await in_remove_handler(message)
+        await in_remove_handler(client, message)
 
 
 @client.event

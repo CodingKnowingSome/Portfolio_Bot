@@ -5,10 +5,11 @@ import discord
 import config
 
 
-async def in_remove_handler(message: discord.Message):
+async def in_remove_handler(client, message: discord.Message):
     """
     Removes the IN role from the user if the IN message is deleted.
     Args:
+        client: The bot.
         message: The IN message as discord message.
 
     Returns: NA
@@ -25,6 +26,8 @@ async def in_remove_handler(message: discord.Message):
     if has_in_role:
         try:
             await user.remove_roles(discord.Object(id=config.IN_ROLE_ID))
+            client.dispatch("leaderboard_update", "aa")
+            client.dispatch("leaderboard_update", "officer")
         except discord.Forbidden:
             pass
     else:
