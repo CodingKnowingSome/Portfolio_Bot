@@ -4,11 +4,8 @@ The main file, responsible for starting the bot, and calling other functions.
 import discord
 from discord.ext import commands
 import os
-import sys
-import subprocess
 import logging
 import database_setup
-import asyncio
 import config
 from DutyStates.Leaderboard import leaderboard
 from AA.AA_Leaderboard import aaleaderboard
@@ -24,6 +21,9 @@ from api import run_api
 import threading
 from Functions.Views import PersistentFetchView
 from Functions.Data_Handling.DataRequestsView import DataRequestsView
+from AA.AA_Leaderboard import aa_keepup
+from DutyStates.Leaderboard import officer_keepup
+import aiosqlite
 
 #logging setup
 setup_logging()
@@ -57,10 +57,11 @@ class Bot(commands.Bot):
         await database_setup.database_setup()
         logger.info('Databases loaded')
         logger.info('Loading leaderboard...')
-        asyncio.create_task(leaderboard(self))
+        await leaderboard(client)
+        logger.info('Leaderboard loaded')
         logger.info('leaderboard loaded')
         logger.info('Loading AA leaderboard...')
-        asyncio.create_task(aaleaderboard(self))
+        await aaleaderboard(client)
         logger.info('AA leaderboard loaded')
         logger.info('Registering persistent views...')
         self.add_view(PersistentFetchView(self, "Fetch a duty state", "ds:persistent_fetch"))
@@ -156,7 +157,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
             except discord.NotFound:
                 return
             await aa_promotions_shouts(message, client, guild)
-            await aa_leaderboard_edit(message, guild)
+            await aa_leaderboard_edit(client, message, guild)
         else:
             return
     elif payload.channel_id == in_channel_id:
@@ -203,6 +204,44 @@ async def on_message_delete(message: discord.Message):
     """
     if message.channel.id == config.IN_CHANNEL_ID:
         await in_remove_handler(message)
+
+
+@client.event
+async def on_leaderboard_update(lb_type: str):
+    if lb_type == 'aa':
+        async with aiosqlite.connect("data/leaderboard.db") as conn:
+            async with conn.execute("SELECT value FROM aa_leaderboard_meta WHERE key = 'message_id'") as c:
+                row = await c.fetchone()
+        ld_channel = client.get_channel(config.AA_LD_CHANNEL_ID)
+        if not ld_channel:
+            try:
+                ld_channel = await client.fetch_channel(config.AA_LD_CHANNEL_ID)
+            except discord.NotFound:
+                return
+        try:
+            message = await ld_channel.fetch_message(row[0])
+        except discord.NotFound:
+            await aaleaderboard(client)
+            return
+        await aa_keepup(client, message)
+    elif lb_type == 'officer':
+        async with aiosqlite.connect("data/leaderboard.db") as conn:
+            async with conn.execute("SELECT value FROM leaderboard_meta WHERE key = 'message_id'") as c:
+                row = await c.fetchone()
+        if not row:
+            await leaderboard(client)
+        ld_channel = client.get_channel(config.LD_CHANNEL_ID)
+        if not ld_channel:
+            try:
+                ld_channel = await client.fetch_channel(config.LD_CHANNEL_ID)
+            except discord.NotFound:
+                return
+        try:
+            message = await ld_channel.fetch_message(row[0])
+        except discord.NotFound:
+            await leaderboard(client)
+            return
+        await officer_keepup(client, message)
 
 
 client.run(config.DISCORD_TOKEN)

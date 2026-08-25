@@ -120,7 +120,7 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
             Args:
                 interaction_: The interaction object from discord.Interaction.
             """
-            await accept(message, interaction_.user, total_mins, interaction_)
+            await accept(client, message, interaction_.user, total_mins, interaction_)
 
         accept_button.callback = accept_callback
         view.add_item(accept_button)
@@ -143,19 +143,6 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
         await interaction.followup.send(f"{lines[8][len('Tablist Ended: '):].strip()}", ephemeral=True)
         async with aiosqlite.connect("data/duty_states.db") as conn:
             await conn.execute("DELETE FROM pending_duties WHERE message_id = ?", (message_id,))
-            await conn.commit()
-        async with aiosqlite.connect("data/leaderboard.db") as conn:
-            async with conn.execute("SELECT graded, total FROM leaderboard WHERE user_id = ?", (user.id,)) as c:
-                result = await c.fetchone()
-            if result:
-                graded = result[0]
-                graded += 1
-                total = result[1]
-                total += 1
-                await conn.execute("UPDATE leaderboard SET graded = ? WHERE user_id = ?", (graded, user.id))
-                await conn.execute("UPDATE leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
-            else:
-                await conn.execute("INSERT INTO leaderboard (user_id, graded, total) VALUES (?, ?, ?)", (user.id, 1, 1))
             await conn.commit()
 
     except Exception as e:

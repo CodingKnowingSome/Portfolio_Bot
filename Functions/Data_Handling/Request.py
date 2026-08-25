@@ -32,6 +32,8 @@ async def request(bot: discord.Client, user: discord.User, username: str):
     async with aiosqlite.connect("data/duty_states.db") as conn:
         async with conn.execute("SELECT * FROM pending_duties WHERE user_id = ?", (discord_id,)) as c:
             pending_duties = await c.fetchall()
+        async with conn.execute("SELECT * FROM fetches WHERE user_id = ?", (discord_id,)) as c:
+            fetches = await c.fetchall()
     async with aiosqlite.connect("data/leaderboard.db") as conn:
         async with conn.execute("SELECT * FROM leaderboard WHERE user_id = ?", (discord_id,)) as c:
             leaderboard = await c.fetchone()
@@ -76,6 +78,12 @@ async def request(bot: discord.Client, user: discord.User, username: str):
         user_embed.add_field(
             name="Pending Duty States",
             value=f"ID: {user.id}, messages:\n{duties}",
+            inline=False
+        )
+    if fetches:
+        user_embed.add_field(
+            name="Fetched Duty States",
+            value=f"ID: {user.id}, fetch: {fetches[0]}\n",
             inline=False
         )
     if leaderboard:

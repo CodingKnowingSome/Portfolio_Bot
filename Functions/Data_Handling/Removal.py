@@ -31,7 +31,7 @@ async def removal(bot: discord.Client, user: discord.User, username: str = None)
                 blacklist = await c.fetchone()
     pending_duties_del = 0
     async with aiosqlite.connect("data/duty_states.db") as conn:
-        async with c.execute("DELETE FROM pending_duties WHERE user_id = ?", (discord_id,)) as c:
+        async with conn.execute("DELETE FROM pending_duties WHERE user_id = ?", (discord_id,)) as c:
             pending_duties_del = c.rowcount
         await conn.commit()
     leaderboard_del = 0
@@ -45,6 +45,10 @@ async def removal(bot: discord.Client, user: discord.User, username: str = None)
     async with aiosqlite.connect("data/ds_metadata.db") as conn:
         async with conn.execute("DELETE FROM ds_metadata WHERE user_id = ?", (discord_id,)) as c:
             ds_metadata_del = c.rowcount
+        await conn.commit()
+    async with aiosqlite.connect("data/duty_states.db") as conn:
+        async with conn.execute("DELETE FROM fetches WHERE officer_id = ?", (discord_id,)) as c:
+            fetches_del = c.rowcount
         await conn.commit()
     user_embed = discord.Embed(
         title="Portfolio Bot Data Removal",
@@ -84,6 +88,8 @@ async def removal(bot: discord.Client, user: discord.User, username: str = None)
         del_info += f"Leaderboard: {leaderboard_del}\n"
     if ds_metadata_del != 0:
         del_info += f"DS Metadata: {ds_metadata_del}\n"
+    if fetches_del != 0:
+        del_info += f"Fetches: {fetches_del}\n"
     user_embed.add_field(
         name="Deleted Information Entries",
         value=del_info,

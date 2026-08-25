@@ -58,19 +58,10 @@ async def leaderboard(client: discord.Client):
                 VALUES ('message_id', ?)
             """, (lb.id,))
             await conn.commit()
-    await keepup(client, lb)
-    while True:
-        await asyncio.sleep(60)
-        try:
-            await keepup(client, lb)
-        except discord.NotFound:
-            logger.error("leaderboard message was deleted during runtime! Breaking loop...")
-            break
-        except Exception as e:
-            logger.error(f"Error in leaderboard loop: {e}")
+    await officer_keepup(client, lb)
 
 
-async def keepup(client: discord.Client, lb: discord.Message):
+async def officer_keepup(client: discord.Client, lb: discord.Message):
     """
     Fetches Officers from the database, orders them, creates the new embed and updates the leaderboard.
     Args:

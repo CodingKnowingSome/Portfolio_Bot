@@ -62,7 +62,7 @@ async def database_setup():
             user_id INTEGER NOT NULL,
             username TEXT NOT NULL,
             timezone TEXT NOT NULL,
-            PRIMARY KEY (user_id, username)
+            PRIMARY KEY (user_id)
         )
         """)
         await conn.commit()

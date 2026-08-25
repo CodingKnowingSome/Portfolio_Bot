@@ -20,6 +20,11 @@ async def aa_promotions_shouts(message: discord.Message, client: discord.Client,
     Returns: NA
 
     """
+    approve_emoji = config.APPROVE_EMOJI_NAME
+    has_reaction = any(str(reaction.emoji) == approve_emoji for reaction in message.reactions)
+    if has_reaction:
+        return
+
     promotion_shouts_channel_id = config.PROMOTION_SHOUTS_CHANNEL_ID
     promotion_channel = client.get_channel(promotion_shouts_channel_id)
 

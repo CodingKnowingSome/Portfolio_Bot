@@ -17,7 +17,10 @@ async def in_remove_handler(message: discord.Message):
     guild = message.guild
     user = guild.get_member(message.author.id)
     if not user:
-        user = guild.fetch_member(message.author.id)
+        try:
+            user = await guild.fetch_member(message.author.id)
+        except discord.NotFound:
+            return
     has_in_role = user.get_role(config.IN_ROLE_ID) is not None
     if has_in_role:
         try:

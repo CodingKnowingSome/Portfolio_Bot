@@ -9,10 +9,12 @@ import aiosqlite
 logger = logging.getLogger(__name__)
 
 
-async def deny(message: discord.Message, user: discord.User, reason: str, interaction: discord.Interaction):
+async def deny(client: discord.Client, message: discord.Message, user: discord.User, reason: str,
+               interaction: discord.Interaction):
     """
     Deletes the images and info message in the grading channel, notifies the user with an embed.
     Args:
+        client: The bot.
         reason: The reason for the denial as a str.
         message: The duty state message as discord.Message.
         user: The user grading the duty state as discord.User.
@@ -42,4 +44,14 @@ async def deny(message: discord.Message, user: discord.User, reason: str, intera
     await message.reply(embed=embed)
     await message.clear_reactions()
     await message.add_reaction("❌")
+    async with aiosqlite.connect("data/leaderboard.db") as conn:
+        await conn.execute("""
+            INSERT INTO leaderboard (user_id, graded, total)
+            VALUES (?, 1, 1)
+            ON CONFLICT (user_id) DO UPDATE SET
+                graded = graded + 1,
+                total = total + 1
+        """, (user.id,))
+        await conn.commit()
+    client.dispatch("leaderboard_update", "officer")
     await interaction.followup.send(f"Duty state denied. Reason: {reason}", ephemeral=True)

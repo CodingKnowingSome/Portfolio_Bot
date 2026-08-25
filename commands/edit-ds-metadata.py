@@ -28,15 +28,17 @@ class EditDSMetadata(commands.Cog):
                     metadata = await c.fetchone()
             if metadata:
                 async with aiosqlite.connect("data/ds_metadata.db") as conn:
-                    await conn.execute("UPDATE ds_metadata SET username = ? WHERE user_id = ?", (username, interaction.user.id))
+                    await conn.execute("UPDATE ds_metadata SET username = ? WHERE user_id = ?",
+                                       (username, interaction.user.id))
                     await conn.commit()
         if timezone:
-            with aiosqlite.connect("data/ds_metadata.db") as conn:
+            async with aiosqlite.connect("data/ds_metadata.db") as conn:
                 async with conn.execute("SELECT * FROM ds_metadata WHERE user_id = ?", (interaction.user.id,)) as c:
                     metadata = await c.fetchone()
             if metadata:
                 async with aiosqlite.connect("data/ds_metadata.db") as conn:
-                    await conn.execute("UPDATE ds_metadata SET timezone = ? WHERE user_id = ?", (timezone, interaction.user.id))
+                    await conn.execute("UPDATE ds_metadata SET timezone = ? WHERE user_id = ?",
+                                       (timezone, interaction.user.id))
                     await conn.commit()
         if not username and not timezone:
             await interaction.response.send_message("Nothing to edit.", ephemeral=True)

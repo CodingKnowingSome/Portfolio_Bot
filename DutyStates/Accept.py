@@ -9,12 +9,13 @@ import aiosqlite
 logger = logging.getLogger(__name__)
 
 
-async def accept(message: discord.Message, user: discord.User, total_mins: int,
+async def accept(client: discord.Client, message: discord.Message, user: discord.User, total_mins: int,
                  interaction: discord.Interaction):
     """
     Calls points_check to check for the given points, creates and sends the embed, deletes the info message and
     images in the grading channel.
     Args:
+        client: the bot.
         message: The duty state message as discord.Message.
         user: The user grading the duty state as discord.User.
         total_mins: The total time of the duty states as int.
@@ -73,4 +74,14 @@ async def accept(message: discord.Message, user: discord.User, total_mins: int,
     await message.reply(embed=embed)
     await message.clear_reactions()
     await message.add_reaction("✔️")
+    async with aiosqlite.connect("data/leaderboard.db") as conn:
+        await conn.execute("""
+            INSERT INTO leaderboard (user_id, graded, total)
+            VALUES (?, 1, 1)
+            ON CONFLICT (user_id) DO UPDATE SET
+                graded = graded + 1,
+                total = total + 1
+        """, (user.id,))
+        await conn.commit()
+    client.dispatch("leaderboard_update", "officer")
     await interaction.followup.send("Duty state accepted.", ephemeral=True)

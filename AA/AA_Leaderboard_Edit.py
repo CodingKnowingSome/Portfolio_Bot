@@ -10,10 +10,11 @@ from AA.promotion_parser import parse_promotion_log
 logger = logging.getLogger(__name__)
 
 
-async def aa_leaderboard_edit(message: discord.Message, guild: discord.Guild):
+async def aa_leaderboard_edit(client, message: discord.Message, guild: discord.Guild):
     """
     Edits the AA leaderboard database by adding the lessons for Staff members when a log is accepted.
     Args:
+        client: The bot.
         message: The log message as a discord.Message.
         guild: The server as discord.Guild.
     """
@@ -36,20 +37,17 @@ async def aa_leaderboard_edit(message: discord.Message, guild: discord.Guild):
         if found_user:
             async with aiosqlite.connect("data/leaderboard.db") as conn:
                 for user in found_user:
-                    async with conn.execute("SELECT lessons, total FROM aa_leaderboard WHERE user_id = ?", (user.id,)) as c:
-                        result = await c.fetchone()
-                    if result:
-                        lessons = result[0]
-                        lessons += 1
-                        total = result[1]
-                        total += 1
-                        await conn.execute("UPDATE aa_leaderboard SET lessons = ? WHERE user_id = ?", (lessons, user.id))
-                        await conn.execute("UPDATE aa_leaderboard SET total = ? WHERE user_id = ?", (total, user.id))
-                    else:
-                        await conn.execute("INSERT INTO aa_leaderboard (user_id, lessons, total) VALUES (?, ?, ?)",
-                                  (user.id, 1, 1))
+                    await conn.execute("""
+                        INSERT INTO aa_leaderboard (user_id, lessons, total)
+                        VALUES (?, 1, 1)
+                        ON CONFLICT (user_id) DO UPDATE SET
+                            lessons = lessons + 1,
+                            total = total + 1
+                    """, (user.id,))
                     await conn.commit()
+
         else:
             pass
+        client.dispatch("leaderboard_update", "aa")
     except Exception as e:
         logger.error(f"Failed to edit the AA Leaderboard database: {e}")
