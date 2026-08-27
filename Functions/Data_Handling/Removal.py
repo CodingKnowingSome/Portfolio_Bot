@@ -33,6 +33,8 @@ async def removal(bot: discord.Client, user: discord.User, username: str = None)
     async with aiosqlite.connect("data/duty_states.db") as conn:
         async with conn.execute("DELETE FROM pending_duties WHERE user_id = ?", (discord_id,)) as c:
             pending_duties_del = c.rowcount
+        async with conn.execute("DELETE FROM fetches WHERE officer_id = ?", (discord_id,)) as c:
+            fetches_del = c.rowcount
         await conn.commit()
     leaderboard_del = 0
     aa_leaderboard_del = 0
@@ -45,10 +47,6 @@ async def removal(bot: discord.Client, user: discord.User, username: str = None)
     async with aiosqlite.connect("data/ds_metadata.db") as conn:
         async with conn.execute("DELETE FROM ds_metadata WHERE user_id = ?", (discord_id,)) as c:
             ds_metadata_del = c.rowcount
-        await conn.commit()
-    async with aiosqlite.connect("data/duty_states.db") as conn:
-        async with conn.execute("DELETE FROM fetches WHERE officer_id = ?", (discord_id,)) as c:
-            fetches_del = c.rowcount
         await conn.commit()
     user_embed = discord.Embed(
         title="Portfolio Bot Data Removal",
@@ -96,6 +94,8 @@ async def removal(bot: discord.Client, user: discord.User, username: str = None)
         inline=False
     )
     user_embed.set_footer(text=f"Portfolio Bot Data Removal Request")
+    user_embed.set_thumbnail(
+        url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
     log_channel = bot.get_channel(log_channel_id)
     if not log_channel:
         try:
@@ -119,6 +119,8 @@ async def removal(bot: discord.Client, user: discord.User, username: str = None)
                 value="The bot could not DM the user (discord.Forbidden)",
                 inline=False
             )
+            log_embed.set_thumbnail(
+                url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
             await log_channel.send("<@926037474805948416>", embeds=[log_embed, user_embed])
             log = True
     except Exception as e:
@@ -134,6 +136,8 @@ async def removal(bot: discord.Client, user: discord.User, username: str = None)
                 value=f"{e}",
                 inline=False
             )
+            log_embed.set_thumbnail(
+                url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
             log = True
             await log_channel.send("<@926037474805948416>", embeds=[log_embed, user_embed])
     if not log:
@@ -144,5 +148,7 @@ async def removal(bot: discord.Client, user: discord.User, username: str = None)
                 color=discord.Color.green(),
                 timestamp=datetime.now()
             )
+            log_embed.set_thumbnail(
+                url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
             await log_channel.send(embed=log_embed)
             del log

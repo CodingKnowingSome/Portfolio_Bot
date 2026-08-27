@@ -8,7 +8,7 @@ import logging
 import config
 
 from Functions.Views import PersistentFetchView
-from Functions.access_check import has_required_role
+from Functions.access_check import required_role
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ class SendFetch(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="sendfetch", description="Send the duty state fetch message again.")
+    @required_role(config.ADMIN_ROLE_ID)
     async def sendfetch(self, interaction: discord.Interaction):
         """
         Sends a new duty state fetch message (Admin).
@@ -27,9 +28,6 @@ class SendFetch(commands.Cog):
         Returns: NA
 
         """
-        admin_role_id = config.ADMIN_ROLE_ID
-        if not await has_required_role(interaction, admin_role_id):
-            return
         channel = self.bot.get_channel(config.DSGRADE_CHANNEL_ID)
         if not channel:
             channel = await self.bot.fetch_channel(config.DSGRADE_CHANNEL_ID)

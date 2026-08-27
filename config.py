@@ -50,6 +50,7 @@ def get_env_str(key: str) -> str:
         raise ConfigurationError(f"Environment variable {key} not set.")
     return str(value)
 
+
 try:
     #TOKEN
     DISCORD_TOKEN = get_env_str('DISCORD_TOKEN')
@@ -79,6 +80,7 @@ try:
     OFFICER_ROLE_ID = get_env_int('OFFICER_ROLE_ID')
     IN_ROLE_ID = get_env_int('IN_ROLE_ID')
     TESTER_ROLE_ID = get_env_int('TESTER_ROLE_ID')
+    AA_ROLE_ID = get_env_int('AA_ROLE_ID')
 
     #APIs
     API_URL = get_env_str('API_URL')

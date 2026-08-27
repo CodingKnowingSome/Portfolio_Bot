@@ -2,11 +2,13 @@
 Functions used to check if a user can use a certain command.
 """
 import discord
+from Functions.cache_members import get_member
+from functools import wraps
 
 
 async def has_required_role(interaction: discord.Interaction, required_role_id: int) -> bool:
     """
-    Cheks if a user has a given role a role above the given role.
+    Checks if a user has the required role or a higher role.
     Args:
         interaction: The interaction object from discord.Interaction.
         required_role_id: The id of the required role.
@@ -33,6 +35,19 @@ async def has_required_role(interaction: discord.Interaction, required_role_id: 
     return True
 
 
+def required_role(role_id: int):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(self, interaction: discord.Interaction, *args, **kwargs):
+            if not await has_required_role(interaction, role_id):
+                return
+            return await func(self, interaction, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 async def has_required_role_member(guild: discord.Guild, user_id: int, required_role_id: int) -> bool:
     """
     Checks if a member has a given role.
@@ -44,11 +59,7 @@ async def has_required_role_member(guild: discord.Guild, user_id: int, required_
     Returns: True/False.
 
     """
-    member = guild.get_member(user_id)
-    if not member:
-        member = await guild.fetch_member(user_id)
-    has_role = member.get_role(required_role_id) is not None
-    if has_role:
-        return True
-    else:
+    member = await get_member(guild, user_id)
+    if member is None:
         return False
+    return member.get_role(required_role_id) is not None

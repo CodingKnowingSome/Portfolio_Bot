@@ -7,7 +7,7 @@ from discord import app_commands
 import logging
 import aiosqlite
 from datetime import datetime
-from Functions.access_check import has_required_role
+from Functions.access_check import required_role
 import config
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ class AALeaderboardReset(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name='aaleaderboardreset', description="Resets the AA leaderboard.")
+    @required_role(config.OFFICER_ROLE_ID)
     async def aaleaderboardreset(self, interaction: discord.Interaction):
         """
         Copies the AA leaderboard into an archive channel, changes every weekly lesson to 0 in the AA database.
@@ -28,9 +29,6 @@ class AALeaderboardReset(commands.Cog):
 
         """
         await interaction.response.defer(ephemeral=True)
-        officer_role_id = config.OFFICER_ROLE_ID
-        if not await has_required_role(interaction, officer_role_id):
-            return
         async with aiosqlite.connect("data/leaderboard.db") as conn:
             async with conn.execute("SELECT * FROM aa_leaderboard") as c:
                 all_staff = await c.fetchall()
@@ -89,6 +87,7 @@ class AALeaderboardReset(commands.Cog):
         async with aiosqlite.connect("data/leaderboard.db") as conn:
             await conn.execute("UPDATE aa_leaderboard SET lessons = 0")
             await conn.commit()
+        self.bot.dispatch("leaderboard_update", "aa")
         await interaction.followup.send("Leaderboard archived and reset.", ephemeral=True)
 
 

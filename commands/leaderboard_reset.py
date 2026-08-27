@@ -7,7 +7,7 @@ from discord import app_commands
 import logging
 import aiosqlite
 from datetime import datetime
-from Functions.access_check import has_required_role
+from Functions.access_check import required_role
 import config
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ class LeaderboardReset(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name='leaderboardreset', description="Resets the leaderboard.")
+    @required_role(config.OVERWATCH_ROLE_ID)
     async def leaderboardreset(self, interaction: discord.Interaction):
         """
         Copies the leaderboard into the archive channel, sets every "graded" to 0 in the database.
@@ -28,9 +29,6 @@ class LeaderboardReset(commands.Cog):
 
         """
         await interaction.response.defer(ephemeral=True)
-        overwatch_role_id = config.OVERWATCH_ROLE_ID
-        if not await has_required_role(interaction, overwatch_role_id):
-            return
         async with aiosqlite.connect("data/leaderboard.db") as conn:
             async with conn.execute("SELECT * FROM leaderboard") as c:
                 all_officer = await c.fetchall()
@@ -89,6 +87,7 @@ class LeaderboardReset(commands.Cog):
         async with aiosqlite.connect("data/leaderboard.db") as conn:
             await conn.execute("UPDATE leaderboard SET graded = 0")
             await conn.commit()
+        self.bot.dispatch("leaderboard_update", "officer")
         await interaction.followup.send("Leaderboard archived and reset.", ephemeral=True)
 
 

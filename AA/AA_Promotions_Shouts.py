@@ -20,11 +20,6 @@ async def aa_promotions_shouts(message: discord.Message, client: discord.Client,
     Returns: NA
 
     """
-    approve_emoji = config.APPROVE_EMOJI_NAME
-    has_reaction = any(str(reaction.emoji) == approve_emoji for reaction in message.reactions)
-    if has_reaction:
-        return
-
     promotion_shouts_channel_id = config.PROMOTION_SHOUTS_CHANNEL_ID
     promotion_channel = client.get_channel(promotion_shouts_channel_id)
 
@@ -36,6 +31,8 @@ async def aa_promotions_shouts(message: discord.Message, client: discord.Client,
     stage = names.stage
     found_user = []
     names_list = []
+    if not names.usernames:
+        return
     for name in names.usernames:
         member = discord.utils.get(guild.members, display_name=name)
 
@@ -71,6 +68,8 @@ async def aa_promotions_shouts(message: discord.Message, client: discord.Client,
         description=promotion_message["description"].format(passed=passed),
         color=discord.Color.green()
     )
+    embed.set_thumbnail(
+        url="https://media.discordapp.net/attachments/1333019761554227251/1521160577244729394/image.png?ex=6a9049af&is=6a8ef82f&hm=90a11862d6f18cf058ad0d341dc59b1a8708a9db71fd4928ddcda73d039939ee&format=webp")
     await promotion_channel.send(content=pings, embed=embed)
 
     return

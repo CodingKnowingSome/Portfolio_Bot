@@ -1,13 +1,11 @@
 # Portfolio Bot
 
-A Discord bot created by *KapitanyDrake* for showcase purposes.
+A Discord bot created by *KapitanyDrake* as a programming portfolio project.
 
 - Python 3.14 (developed and tested)
 - `discord.py`
 - Flask
 - aiosqlite and sqlite3
-
-Features the duty state workflow, KoS checker, blacklists, AA student promotion notifications and other misc. features.
 
 ## Features
 
@@ -27,7 +25,7 @@ Features the duty state workflow, KoS checker, blacklists, AA student promotion 
 ### Inactivity Notices
 
 - **Auto role:** Automatically gives and removes the IN role when it is approved and the message is deleted.
-- **Leaderboards:** The leaderboards shows who are on inactivity notice.
+- **Leaderboards:** The leaderboards show who are on inactivity notice.
 
 ### Flask and Roblox API
 
@@ -38,33 +36,40 @@ Features the duty state workflow, KoS checker, blacklists, AA student promotion 
 ## Repository Structure
 
 - **Main Folder:** `main.py`, loggers, config and API.
-- **/AA:** AA Leaderboard and promotion shouts.
-- **/commands:** Slash commands.
-- **/data:** The database files.
-- **/DutyStates:** Leaderboard, duty state grading.
-- **/Events:** Misc. event, duty state submissions.
-- **/Functions:** Helper functions used across the bot.
-    - */Data_Handling:* Functions for data requests.
+- **`/AA`:** AA Leaderboard and promotion shouts.
+- **`/commands`:** Slash commands.
+- **`/data`:** The database files.
+- **`/DutyStates`:** Leaderboard, duty state grading.
+- **`/Events`:** Misc. event, duty state submissions.
+- **`/Functions`:** Helper functions used across the bot.
+    - *`/Data_Handling:`* Functions for data requests.
 
 ## Slash Commands
 
-| Command               | Description                                                                 | Permission |
-|:----------------------|:----------------------------------------------------------------------------|:-----------|
-| `/aaleaderboardreset` | Resets the AA leaderboard and archives the current state.                   | Officer    |
-| `/blacklist`          | Blacklist or unblacklist a user.                                            | Tester     |
-| `/blacklist-list`     | Lists all the current blacklists.                                           | Everyone   |
-| `/data-message-send`  | Sends the data requests message and selection again.                        | Admin      |
-| `/dice`               | Outputs a random number between 1 and the user given max.                   | Everyone   |
-| `/dsmake`             | Formats the duty state based on the user inputs and the already known info. | Guest      |
-| `/edit-ds-metadata`   | Edit your duty state metadata                                               | Everyone   |
-| `/is-blacklisted`     | Checks if a user is blacklisted.                                            | Everyone   |
-| `/kos`                | Checks the user's KoS status.                                               | Everyone   |
-| `/kosmake`            | Used to edit a user's KoS status.                                           | Tester     |
-| `/kylo`               | Gives a random weight, and a percent of becoming a blackhole.               | Everyone   |
-| `/leaderboardreset`   | Resets and archives the Officer leaderboard.                                | Overwatch  |
-| `/pending`            | Checks the amount of pending duty states the user has.                      | Guest      |
-| `/ping`               | Responds with the latency of the bot.                                       | Everyone   |
-| `/sendfetch`          | Sends a new duty state fetch message.                                       | Admin      |
+| Command               | Description                                                                 | Permission        |
+|:----------------------|:----------------------------------------------------------------------------|:------------------|
+| `/aaleaderboardreset` | Resets the AA leaderboard and archives the current state.                   | Officer           |
+| `/blacklist`          | Blacklist or unblacklist a user.                                            | Tester            |
+| `/blacklist-list`     | Lists all the current blacklists.                                           | Everyone          |
+| `/data-message-send`  | Sends the data requests message and selection again.                        | Admin             |
+| `/dice`               | Outputs a random number between 1 and the user given max.                   | Everyone          |
+| `/dsmake`             | Formats the duty state based on the user inputs and the already known info. | Guest             |
+| `/edit-ds-metadata`   | Edit your duty state metadata                                               | Everyone          |
+| `/is-blacklisted`     | Checks if a user is blacklisted.                                            | Everyone          |
+| `/kos`                | Checks the user's KoS status.                                               | Everyone          |
+| `/kosmake`            | Used to edit a user's KoS status.                                           | Tester            |
+| `/kylo`               | Gives a random weight, and a percent of becoming a blackhole.               | Everyone          |
+| `/leaderboardreset`   | Resets and archives the Officer leaderboard.                                | Overwatch         |
+| `/mobileleaderboard`  | Sends a mobile friendly version of the selected leaderboard.                | Staff/Officer     |
+| `/pending`            | Checks the amount of pending duty states the user has.                      | Guest             |
+| `/ping`               | Responds with the latency of the bot.                                       | Everyone          |
+| `/remove`             | Removes the specified user from the selected leaderboard.                   | Officer/Overwatch |
+| `/sendfetch`          | Sends a new duty state fetch message.                                       | Admin             |
+
+## Project Status
+
+This project is actively developed as a programming portfolio project. Features and systems may be changed, improved,
+removed, or expanded.
 
 ## Running It
 
@@ -109,11 +114,12 @@ DENY_EMOJI_NAME=deny_emoji_name
 DATA_CHANNEL_ID=data_channel_id
 DATA_LOG_CHANNEL_ID=data_log_channel_id
 AA_MESSAGE_ID=message_id_of_aa_logs_channel_pinned_message
-IN_MESSAEG_ID=message_id_of_in_logs_channel_pinned_message
+IN_MESSAGE_ID=message_id_of_in_logs_channel_pinned_message
+AA_ROLE_UD=aa_role_id
 ```
 
 ### Running the Bot
 
 ```bash
-python3 main.py
+python main.py
 ```

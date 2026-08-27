@@ -7,7 +7,7 @@ from discord.ext import commands
 import aiohttp
 import logging
 import config
-from Functions.access_check import has_required_role
+from Functions.access_check import required_role
 
 logger = logging.getLogger(__name__)
 API_URL = config.API_URL
@@ -24,6 +24,7 @@ class KosMake(commands.Cog):
         app_commands.Choice(name="True", value="True"),
         app_commands.Choice(name="False", value="False"),
     ])
+    @required_role(config.TESTER_ROLE_ID)
     async def kosmake(self, interaction: discord.Interaction, username: str, status: str):
         """
         Edits a user's KoS status.
@@ -35,9 +36,6 @@ class KosMake(commands.Cog):
         Returns: NA
 
         """
-        tester_role_id = config.TESTER_ROLE_ID
-        if not await has_required_role(interaction, tester_role_id):
-            return
         await interaction.response.defer()
         if status == "True":
             status = True

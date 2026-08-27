@@ -7,7 +7,7 @@ from discord import app_commands
 import logging
 import aiosqlite
 from discord.ui import Modal, TextInput
-from Functions.access_check import has_required_role
+from Functions.access_check import required_role
 import config
 
 logger = logging.getLogger(__name__)
@@ -24,6 +24,7 @@ class DSMake(commands.Cog):
     @app_commands.describe(duty_link="Link to duty screenshot.")
     @app_commands.describe(start_tablist="Link to Tablist Started")
     @app_commands.describe(end_tablist="Link to Tablist Ended")
+    @required_role(config.GUEST_ROLE_ID)
     async def dsmake(self, interaction: discord.Interaction, start_time: str, end_time: str, duty: str, duty_link: str,
                      start_tablist: str, end_tablist: str):
         """
@@ -41,9 +42,6 @@ class DSMake(commands.Cog):
         Returns: NA
 
         """
-        guest_role_id = config.GUEST_ROLE_ID
-        if not await has_required_role(interaction, guest_role_id):
-            return
         async with aiosqlite.connect("data/ds_metadata.db") as conn:
             async with conn.execute('''SELECT * FROM ds_metadata WHERE user_id = ?''', (interaction.user.id,)) as c:
                 results = await c.fetchone()

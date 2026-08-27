@@ -6,7 +6,7 @@ from discord import app_commands
 import discord
 import aiosqlite
 import logging
-from Functions.access_check import has_required_role
+from Functions.access_check import required_role
 import config
 
 logger = logging.getLogger(__name__)
@@ -17,6 +17,7 @@ class Pending(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="pending", description="Check for your pending duty states!")
+    @required_role(config.GUEST_ROLE_ID)
     async def pending(self, interaction: discord.Interaction):
         """
         Checks for the number of pending duty states of a user.
@@ -26,9 +27,6 @@ class Pending(commands.Cog):
         Returns: NA
 
         """
-        guest_role_id = config.GUEST_ROLE_ID
-        if not await has_required_role(interaction, guest_role_id):
-            return
         async with aiosqlite.connect("data/duty_states.db") as conn:
             async with conn.execute("SELECT * FROM pending_duties WHERE user_id = ?", (interaction.user.id,)) as c:
                 results = await c.fetchall()

@@ -1,7 +1,6 @@
 """
 Creates, updates, and upkeep's the leaderboard.
 """
-import asyncio
 import datetime
 import discord
 import aiosqlite
@@ -21,9 +20,6 @@ async def aaleaderboard(client: discord.Client):
     Returns: NA
 
     """
-    embed = discord.Embed(title="Leaderboard", description="", color=discord.Color.yellow())
-    ctime = datetime.datetime.now()
-    embed.set_footer(text=f"Updated: {ctime}")
     ld_channel_id = config.AA_LD_CHANNEL_ID
     channel = client.get_channel(ld_channel_id)
     if not channel:
@@ -49,7 +45,8 @@ async def aaleaderboard(client: discord.Client):
 
     if not lb:
         embed = discord.Embed(title="Leaderboard", description="Loading...", color=discord.Color.yellow())
-        embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
+        embed.set_thumbnail(
+            url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
         lb = await channel.send(embed=embed)
 
         async with aiosqlite.connect("data/leaderboard.db") as conn:
@@ -73,6 +70,8 @@ async def aa_keepup(client: discord.Client, lb: discord.Message):
     """
     if not lb.embeds:
         embed = discord.Embed(title="Leaderboard", color=discord.Color.yellow())
+        embed.set_thumbnail(
+            url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
     else:
         embed = lb.embeds[0]
     guild = client.get_guild(config.TEST_GUILD_ID)
@@ -104,12 +103,21 @@ async def aa_keepup(client: discord.Client, lb: discord.Message):
             has_in_role
         ))
     processed_staff.sort(key=lambda x: (x[0], -x[1]))
-    description = ""
+    lines = [
+        "Leaderboard for weekly and all time lesson counts of current Staff members.",
+        "",
+        "```",
+        f"{'#':<3} {'Staff':<15} {'Week':<8} {'All-time':<5}",
+        "----------------------------------"
+    ]
     for idx, (is_inactive, lessons, total, user_name, has_in_role) in enumerate(processed_staff, start=1):
-        if not has_in_role:
-            description += f"**{idx}.** - {user_name} - {lessons} ({total})\n"
-        else:
-            description += f"**{idx}.** - {user_name} - ⛔ ({total})\n"
-    embed.description = description if description else "NA"
-    embed.set_footer(text=f"Updated: {datetime.datetime.now()}")
+        week_val = "⛔" if has_in_role else str(lessons)
+        display_name = user_name[:15] if len(user_name) > 15 else user_name
+        lines.append(f"{idx:<3} {display_name:<15} {week_val:<8} {total:<5}")
+    lines.append("```")
+    ctime = int(datetime.datetime.now().timestamp())
+    lines.append(f"-# Last updated: <t:{ctime}:T>")
+    embed.description = "\n".join(lines)
+    embed.set_thumbnail(
+        url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
     await lb.edit(embed=embed)

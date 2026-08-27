@@ -94,7 +94,7 @@ async def fetch(client: discord.Client, user: discord.User, interaction: discord
         minutes = total_mins % 60
         embed = discord.Embed(
             title="Duty State",
-            description=f"{user.mention} \n {lines[0]} | {lines[1]} \n {lines[4]} to {lines[7]} \n Time: {hours}h {minutes}m",
+            description=f"{user.mention} \n {lines[0]} | {lines[1]}\nTime: {hours}h {minutes}m ({lines[4][len("Time Started: "):].strip()} to {lines[7][len("Time Ended: "):].strip()})",
             colour=discord.Colour.blue(),
         )
         embed.add_field(name="Duty", value=lines[2])

@@ -15,12 +15,18 @@ logger = logging.getLogger(__name__)
 class DutyStateValidation:
     valid: bool
     correct: str
+    tz_match: bool
 
 
 async def duty_state_validation(content: str) -> DutyStateValidation:
     lines = content.splitlines()
+    lines += [""] * max(0, 9 - len(lines))
+    if len(lines) == 10 or len(lines) == 11:
+        lines += [""] * max(0, 11 - len(lines))
     correct = ""
     errors = []
+    start_tz = None
+    end_tz = None
     if len(lines) < 1 or not lines[0].startswith("Username: "):
         correct += lines[0] + "<- Should be: 'Username: [username]'\n"
         errors.append(1)
@@ -52,6 +58,7 @@ async def duty_state_validation(content: str) -> DutyStateValidation:
         errors.append(5)
     else:
         correct += lines[4] + '\n'
+        start_tz = lines[4][len("Time Started: "):].split()[-1]
     if len(lines) < 6 or not lines[5].startswith("Tablist Started: "):
         correct += lines[5] + "<- Should be: 'Tablist Started: [link]'"
         errors.append(6)
@@ -76,6 +83,7 @@ async def duty_state_validation(content: str) -> DutyStateValidation:
         errors.append(8)
     else:
         correct += lines[7] + '\n'
+        end_tz = lines[7][len("Time Ended: "):].split()[-1]
     if len(lines) < 9 or not lines[8].startswith("Tablist Ended: "):
         correct += lines[8] + "<- Should be: 'Tablist Ended: [link]'"
         errors.append(9)
@@ -92,15 +100,23 @@ async def duty_state_validation(content: str) -> DutyStateValidation:
             errors.append(10)
         else:
             correct += lines[9] + '\n'
-    if len(lines) == 11:
+    if len(lines) >= 11:
         if not lines[10].startswith("Notes: "):
-            correct += lines[10] + "<- Should be 'Notes: [note]'"
+            correct += lines[10] + "<- Should be 'Notes: [note]'\n"
             errors.append(11)
         else:
-            correct += lines[10]
+            correct += lines[10] + "\n"
+    if len(lines) > 11:
+        correct += "--Nothing should come after--"
+        errors.append(12)
+    tz_match = True
+    if start_tz and end_tz and start_tz != end_tz:
+        tz_match = False
+        errors.append("tz_error")
     return DutyStateValidation(
         valid=not errors,
-        correct=correct
+        correct=correct,
+        tz_match=tz_match
     )
 
 
@@ -141,6 +157,8 @@ async def dutylistener(message: discord.Message):
             color=discord.Color.red(),
             timestamp=datetime.now()
         )
+        if not validated.tz_match:
+            embed.add_field(name="Extra Info", value="Timezones must match.")
         embed.set_footer(text="CodingKnowingSome")
         await message.reply(f"```{validated.correct}```", embed=embed)
         await message.add_reaction("❌")

@@ -151,13 +151,34 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if payload.channel_id == aa_logs_channel_id:
         if payload.emoji.name == config.APPROVE_EMOJI_NAME:
             channel = client.get_channel(payload.channel_id)
+            if not channel:
+                try:
+                    channel = await client.fetch_channel(payload.channel_id)
+                except discord.NotFound:
+                    return
             guild = client.get_guild(payload.guild_id)
-            try:
-                message = await channel.fetch_message(payload.message_id)
-            except discord.NotFound:
+            if not guild:
+                try:
+                    guild = await client.fetch_guild(payload.guild_id)
+                except discord.NotFound:
+                    return
+            if await has_required_role_member(guild, payload.user_id, config.OFFICER_ROLE_ID) or await has_required_role_member(
+                    guild, payload.user_id, config.OVERWATCH_ROLE_ID):
+                try:
+                    message = await channel.fetch_message(payload.message_id)
+                except discord.NotFound:
+                    return
+                reaction = None
+                for r in message.reactions:
+                    if str(r.emoji.name) == config.APPROVE_EMOJI_NAME:
+                        reaction = r.count
+                        break
+                if reaction is None or reaction != 1:
+                    return
+                await aa_promotions_shouts(message, client, guild)
+                await aa_leaderboard_edit(client, message, guild)
+            else:
                 return
-            await aa_promotions_shouts(message, client, guild)
-            await aa_leaderboard_edit(client, message, guild)
         else:
             return
     elif payload.channel_id == in_channel_id:

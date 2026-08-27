@@ -12,9 +12,13 @@ class PromotionLogs:
 
 
 def get_names(line: str) -> list[str]:
-    start_index = line.index("username:") + len("username:")
-    end_index = line.index("action:")
-    return line[start_index:end_index].strip().split()
+    try:
+        start_index = line.index("username:") + len("username:")
+        end_index = line.index("action:")
+        return line[start_index:end_index].strip().split()
+    except ValueError as e:
+        logger.warning(f"Failed to parse {line}: {e}")
+        return []
 
 
 def parse_promotion_log(content: str) -> PromotionLogs:

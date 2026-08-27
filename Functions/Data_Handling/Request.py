@@ -32,7 +32,7 @@ async def request(bot: discord.Client, user: discord.User, username: str):
     async with aiosqlite.connect("data/duty_states.db") as conn:
         async with conn.execute("SELECT * FROM pending_duties WHERE user_id = ?", (discord_id,)) as c:
             pending_duties = await c.fetchall()
-        async with conn.execute("SELECT * FROM fetches WHERE user_id = ?", (discord_id,)) as c:
+        async with conn.execute("SELECT * FROM fetches WHERE officer_id = ?", (discord_id,)) as c:
             fetches = await c.fetchall()
     async with aiosqlite.connect("data/leaderboard.db") as conn:
         async with conn.execute("SELECT * FROM leaderboard WHERE user_id = ?", (discord_id,)) as c:
@@ -105,6 +105,8 @@ async def request(bot: discord.Client, user: discord.User, username: str):
             inline=False
         )
     user_embed.set_footer(text=f"Portfolio Bot Data Request")
+    user_embed.set_thumbnail(
+        url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
     log_channel = bot.get_channel(log_channel_id)
     if not log_channel:
         try:
@@ -128,6 +130,8 @@ async def request(bot: discord.Client, user: discord.User, username: str):
                 value="The bot could not DM the user (discord.Forbidden)",
                 inline=False
             )
+            log_embed.set_thumbnail(
+                url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
             await log_channel.send("<@926037474805948416>", embeds=[log_embed, user_embed])
             log = True
     except Exception as e:
@@ -143,6 +147,8 @@ async def request(bot: discord.Client, user: discord.User, username: str):
                 value=f"{e}",
                 inline=False
             )
+            log_embed.set_thumbnail(
+                url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
             log = True
             await log_channel.send("<@926037474805948416>", embeds=[log_embed, user_embed])
     if not log:
@@ -153,5 +159,7 @@ async def request(bot: discord.Client, user: discord.User, username: str):
                 color=discord.Color.green(),
                 timestamp=datetime.now()
             )
+            log_embed.set_thumbnail(
+                url="https://www.citypng.com/public/uploads/preview/hd-python-logo-symbol-transparent-png-735811696257415dbkifcuokn.png")
             await log_channel.send(embed=log_embed)
             del log
