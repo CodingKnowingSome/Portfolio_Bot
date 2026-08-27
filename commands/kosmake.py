@@ -25,7 +25,7 @@ class KosMake(commands.Cog):
         app_commands.Choice(name="False", value="False"),
     ])
     @required_role(config.TESTER_ROLE_ID)
-    async def kosmake(self, interaction: discord.Interaction, username: str, status: str):
+    async def kosmake(self, interaction: discord.Interaction, username: str, status: app_commands.Choice[str]):
         """
         Edits a user's KoS status.
         Args:
@@ -37,13 +37,8 @@ class KosMake(commands.Cog):
 
         """
         await interaction.response.defer()
-        if status == "True":
-            status = True
-        elif status == "False":
-            status = False
-        else:
-            pass
-        payload = {"username": username, "status": status}
+        is_kos = status.value == "True"
+        payload = {"username": username, "status": is_kos}
         api_key = config.API_KEY
 
         headers = {
@@ -54,14 +49,20 @@ class KosMake(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.post(f"{API_URL}/kos", json=payload, headers=headers) as resp:
                     data = await resp.json()
-                    if resp.status == 200 and data["success"]:
-                        state_str = "ADDED to" if status is True else "REMOVED from"
+                    if resp.status == 200 and data.get("success"):
+                        state_str = "ADDED to" if is_kos is True else "REMOVED from"
                         await interaction.followup.send(
-                            f"**{data["username"]}** ({data["user_id"]}) {state_str} KoS database.", ephemeral=True)
+                            f"**{data.get('username', username)}** ({data.get('user_id')}) {state_str} KoS database.",
+                            ephemeral=True)
                     else:
-                        await interaction.followup.send(f"Error: {data("error", "Failed to update KoS status.")}")
+                        error_msg = data.get("detail") or data.get("error") or "Failed to update KoS status."
+                        await interaction.followup.send(f"Error: {error_msg}", ephemeral=True)
+        except aiohttp.ClientError as e:
+            logger.error(f"Network error in /kosmake: {e}")
+            await interaction.followup.send(f"Failed to reach the API server\n*Error log:*\n```{e}```", ephemeral=True)
         except Exception as e:
-            logger.error(f"Error in /kosmake: {e}")
+            logger.error(f"Unexpected error in /kosmake: {e}")
+            await interaction.followup.send(f"An unexpected error occurred\n*Error log:*\n```{e}```", ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

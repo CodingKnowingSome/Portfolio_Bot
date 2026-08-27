@@ -83,15 +83,19 @@ class Blacklist(commands.Cog):
                             embed.set_footer(text=f"Time: {datetime.now()}")
                             await interaction.followup.send(embed=embed, ephemeral=False)
                     else:
+                        error_msg = data.get("detail") or data.get("error") or "An unknown error occurred."
+                        logger.error(f"FastAPI error in /blacklist: {error_msg}")
                         await interaction.followup.send(
-                            f"An error occurred while while adding/removing user. Please try again later. If this error persists, please contact <@926037474805948416>.",
-                            ephemeral=True)
-
+                            f"An error occurred while adding/removing user: {error_msg}", ephemeral=True
+                        )
+        except aiohttp.ClientError as e:
+            logger.error(f"Network error in /blacklist: {e}")
+            await interaction.followup.send(f"Failed to reach the API server\n*Error log:*\n```{e}```",
+                                            ephemeral=True)
         except Exception as e:
-            logger.error(f"Error in /blacklist: {e}")
-            await interaction.followup.send(
-                f"An error occurred while while adding/removing user. Please try again later. If this error persists, please contact <@926037474805948416>.",
-                ephemeral=True)
+            logger.error(f"Unexpected error in /blacklist: {e}")
+            await interaction.followup.send(f"An unexpected error occurred\n*Error log:*\n```{e}```",
+                                            ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

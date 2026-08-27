@@ -162,8 +162,9 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
                     guild = await client.fetch_guild(payload.guild_id)
                 except discord.NotFound:
                     return
-            if await has_required_role_member(guild, payload.user_id, config.OFFICER_ROLE_ID) or await has_required_role_member(
-                    guild, payload.user_id, config.OVERWATCH_ROLE_ID):
+            if await has_required_role_member(guild, payload.user_id,
+                                              config.OFFICER_ROLE_ID) or await has_required_role_member(
+                guild, payload.user_id, config.OVERWATCH_ROLE_ID):
                 try:
                     message = await channel.fetch_message(payload.message_id)
                 except discord.NotFound:

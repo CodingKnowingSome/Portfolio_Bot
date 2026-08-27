@@ -66,3 +66,20 @@ async def database_setup():
         )
         """)
         await conn.commit()
+
+    async with aiosqlite.connect("data/kos_blacklist.db") as conn:
+        await conn.execute("""
+        CREATE TABLE IF NOT EXISTS kos (
+            user_id INTEGER PRIMARY KEY NOT NULL,
+            kos BOOLEAN NOT NULL
+        )
+        """)
+        await conn.execute("""
+        CREATE TABLE IF NOT EXISTS blacklist (
+            user_id INTEGER PRIMARY KEY NOT NULL,
+            reason STRING NOT NULL,
+            added_by NOT NULL,
+            last_edit INTEGER NOT NULL
+        )
+        """)
+        await conn.commit()

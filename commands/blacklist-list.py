@@ -46,10 +46,21 @@ class BlacklistList(commands.Cog):
                             view = Blacklistpager(items, count, author_id=interaction.user.id)
                             await interaction.followup.send(embed=embed, view=view)
                     else:
-                        await interaction.followup.send("An error occurred, please try again later.", ephemeral=True)
+                        error_msg = data.get("detail") or data.get("error") or "An unknown error occurred."
+                        logger.error(f"FastAPI error in /blacklist-list: {error_msg}")
+                        await interaction.followup.send(
+                            f"An error occurred while fetching blacklists: {error_msg}", ephemeral=True
+                        )
+        except aiohttp.ClientError as e:
+            logger.error(f"Network error in /blacklist-list: {e}")
+            await interaction.followup.send(
+                f"Failed to reach the API server\n*Error log:*\n```{e}```", ephemeral=True
+            )
         except Exception as e:
-            logger.error(f"Error in /blacklist-list: {e}")
-            await interaction.followup.send("An error occurred, please try again later.", ephemeral=True)
+            logger.error(f"Unexpected error in /blacklist-list: {e}")
+            await interaction.followup.send(
+                f"An unexpected error occurred\n*Error log:*\n```{e}```", ephemeral=True
+            )
 
 
 async def setup(bot: commands.Bot):

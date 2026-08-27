@@ -40,7 +40,7 @@ class IsBlacklisted(commands.Cog):
                     data = await resp.json()
                     if resp.status == 200:
                         status = data.get("status")
-                        if status is True:
+                        if status is True and data.get("blacklist"):
                             embed = discord.Embed(
                                 title="Blacklist",
                                 color=discord.Color.red(),
@@ -60,13 +60,19 @@ class IsBlacklisted(commands.Cog):
                             )
                             await interaction.followup.send(embed=embed)
                     else:
+                        error_msg = data.get("detail") or data.get("error") or "Status check failed (unknown)."
+                        logger.error(f"FastAPI error in /is-blacklisted for {username}: {error_msg}")
                         await interaction.followup.send(
-                            f"An error occurred while checking the users KoS status: {data.get("error", "Status check failed")}")
-
+                            f"An error occurred while checking blacklsit status: {error_msg}", ephemeral=True
+                        )
+        except aiohttp.ClientError as e:
+            logger.error(f"Network error in /is-blacklisted for {username}: {e}")
+            await interaction.followup.send(f"Failed to reach the API server\n*Error log:*\n```{e}```",
+                                            ephemeral=True)
         except Exception as e:
-            logger.error(f"An error occurred while checking the users ({username}) KoS status: {e}")
-            await interaction.followup.send(
-                "An error occurred while checking the users KoS status. Please try again later. If this error persist, please contact <@926037474805948416>.")
+            logger.error(f"Unexpected error in /is-blacklisted for {username}: {e}")
+            await interaction.followup.send(f"An unexpected error occurred\n*Error log:*\n```{e}```",
+                                            ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

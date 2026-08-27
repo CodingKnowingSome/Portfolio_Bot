@@ -6,3 +6,5 @@ aiosqlite
 aiohttp
 pytest
 pytest-asyncio
+fastapi
+uvicorn
