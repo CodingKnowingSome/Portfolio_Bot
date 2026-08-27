@@ -63,7 +63,7 @@ class IsBlacklisted(commands.Cog):
                         error_msg = data.get("detail") or data.get("error") or "Status check failed (unknown)."
                         logger.error(f"FastAPI error in /is-blacklisted for {username}: {error_msg}")
                         await interaction.followup.send(
-                            f"An error occurred while checking blacklsit status: {error_msg}", ephemeral=True
+                            f"An error occurred while checking blacklist status: {error_msg}", ephemeral=True
                         )
         except aiohttp.ClientError as e:
             logger.error(f"Network error in /is-blacklisted for {username}: {e}")

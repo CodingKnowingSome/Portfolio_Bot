@@ -67,7 +67,8 @@ class Blacklist(commands.Cog):
                                 title="Blacklist removed",
                                 color=discord.Color.green()
                             )
-                            embed.add_field(name="Username", value=f"**{data["username"]}** ({data["user_id"]})")
+                            embed.add_field(name="Username",
+                                            value=f"**{data.get('username')}** ({data.get('user_id')})")
                             embed.add_field(name="Reason", value=f"{reason}")
                             embed.add_field(name="Added by", value=f"{interaction.user.mention}")
                             embed.set_footer(text=f"Time: {datetime.now()}")
@@ -77,7 +78,8 @@ class Blacklist(commands.Cog):
                                 title="Blacklist added",
                                 color=discord.Color.red()
                             )
-                            embed.add_field(name="Username", value=f"**{data["username"]}** ({data["user_id"]})")
+                            embed.add_field(name="Username",
+                                            value=f"**{data.get("username")}** ({data.get('user_id')})")
                             embed.add_field(name="Reason", value=f"{reason}")
                             embed.add_field(name="Added by", value=f"{interaction.user.mention}")
                             embed.set_footer(text=f"Time: {datetime.now()}")

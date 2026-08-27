@@ -25,7 +25,7 @@ class KosMake(commands.Cog):
         app_commands.Choice(name="False", value="False"),
     ])
     @required_role(config.TESTER_ROLE_ID)
-    async def kosmake(self, interaction: discord.Interaction, username: str, status: app_commands.Choice[str]):
+    async def kosmake(self, interaction: discord.Interaction, username: str, status: str):
         """
         Edits a user's KoS status.
         Args:
@@ -37,7 +37,7 @@ class KosMake(commands.Cog):
 
         """
         await interaction.response.defer()
-        is_kos = status.value == "True"
+        is_kos = status == "True"
         payload = {"username": username, "status": is_kos}
         api_key = config.API_KEY
 

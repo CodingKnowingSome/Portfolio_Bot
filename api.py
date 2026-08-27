@@ -49,7 +49,7 @@ class KosResponse(BaseModel):
 class BlacklistEntry(BaseModel):
     user_id: int
     reason: str
-    added_by: str
+    added_by: int | str = "Unknown"
     last_edit: int
     username: str
 
@@ -65,7 +65,7 @@ class SetBlacklistResponse(BaseModel):
     user_id: int
     username: str
     reason: str
-    added_by: int
+    added_by: int | str = "Unknown"
     last_edit: int
 
 
@@ -154,7 +154,7 @@ async def set_blacklist(payload: SetBlacklistRequest):
                     added_by = excluded.added_by
                     last_edit = excluded.last_edit
             """, (user_id, payload.reason, payload.added_by, last_edit))
-            await conn.commit()
+        await conn.commit()
     return SetBlacklistResponse(
         success=True,
         user_id=user_id,
@@ -175,7 +175,7 @@ async def get_blacklist():
         async with conn.execute("""
             SELECT user_id, reason, added_by, last_edit FROM blacklist
         """) as c:
-            rows = c.fetchall()
+            rows = await c.fetchall()
         if not rows:
             return BlacklistListResponse(success=True, count=0, blacklist=[])
         user_ids = list({r[0] for r in rows})
@@ -230,7 +230,7 @@ async def is_blacklist(username: str):
         async with conn.execute("""
             SELECT user_id, reason, added_by, last_edit FROM blacklist WHERE user_id = ?
         """, (user_id,)) as c:
-            row = c.fetchone()
+            row = await c.fetchone()
         if not row:
             return BlacklistResponse(success=True, status=False, blacklist=None)
         entry = BlacklistEntry(
